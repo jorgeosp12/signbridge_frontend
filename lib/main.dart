@@ -16,6 +16,8 @@ class SignBridgeApp extends StatelessWidget {
       title: 'SignBridge',
       theme: AppTheme.dark(),
       home: const HomePage(),
+
     );
   }
 }
+

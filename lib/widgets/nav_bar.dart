@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Asegúrate de importarlo
 import '../theme/app_colors.dart';
 import 'status_pill.dart';
 
@@ -16,26 +17,42 @@ class NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Detectamos si la pantalla es estrecha (celular/tablet pequeña)
+    final isNarrow = MediaQuery.of(context).size.width < 800;
+
+    // --- DISEÑO MEJORADO DEL BOTÓN ---
     Widget navItem(String label) {
       final isActive = selected == label;
-      return TextButton(
-        onPressed: () => onSelect(label),
-        style: TextButton.styleFrom(
-          foregroundColor: isActive ? AppColors.text : AppColors.muted,
-          textStyle: TextStyle(
-            fontSize: 13,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+      
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: TextButton(
+          onPressed: () => onSelect(label),
+          style: TextButton.styleFrom(
+            // El texto se pinta del color principal si está activo
+            foregroundColor: isActive ? AppColors.text : AppColors.muted,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.inter( // Usamos la fuente de tu proyecto
+              fontSize: 14,
+              fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
         ),
-        child: Text(label),
       );
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.bg.withOpacity(0.85),
+        color: AppColors.bg.withOpacity(0.9),
         border: Border(
           bottom: BorderSide(color: Colors.white.withOpacity(0.06)),
         ),
@@ -45,25 +62,31 @@ class NavBar extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 1100),
           child: Row(
             children: [
+              // LOGO
               RichText(
-                text: const TextSpan(
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                text: TextSpan(
+                  style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900),
                   children: [
-                    TextSpan(text: 'Sign', style: TextStyle(color: AppColors.text)),
-                    TextSpan(text: 'Bridge', style: TextStyle(color: AppColors.primary)),
+                    TextSpan(text: 'Sign', style: GoogleFonts.lalezar(color: Colors.white, letterSpacing: 1.5, fontSize: 25)),
+                    TextSpan(text: 'Bridge', style: GoogleFonts.lalezar(color: AppColors.primary, letterSpacing: 1.5, fontSize: 25)),
                   ],
                 ),
               ),
+              
               const Spacer(),
-              Row(
-                children: [
-                  navItem('Home'),
-                  navItem('Features'),
-                  navItem('Tutorial'),
-                  navItem('Demo'),
-                ],
-              ),
+
+              if (!isNarrow)
+                Row(
+                  children: [
+                    navItem('Home'),
+                    navItem('Features'),
+                    navItem('Tutorial'),
+                    navItem('Demo'),
+                  ],
+                ),
+
               const Spacer(),
+
               StatusPill(isOnline: systemOnline),
             ],
           ),

@@ -3,15 +3,12 @@ import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 
 class CameraTestSection extends StatefulWidget {
   final bool engineOn;
-
-  const CameraTestSection({
-    super.key,
-    required this.engineOn,
-  });
+  const CameraTestSection({super.key, required this.engineOn});
 
   @override
   State<CameraTestSection> createState() => _CameraTestSectionWebState();
@@ -19,10 +16,8 @@ class CameraTestSection extends StatefulWidget {
 
 class _CameraTestSectionWebState extends State<CameraTestSection> {
   static int _viewIdCounter = 0;
-
   late final String _viewType;
   late final html.VideoElement _video;
-
   html.MediaStream? _stream;
 
   bool _cameraOn = false;
@@ -32,9 +27,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   @override
   void initState() {
     super.initState();
-
     _viewType = 'signbridge-webcam-view-${_viewIdCounter++}';
-
     _video = html.VideoElement()
       ..autoplay = true
       ..muted = true
@@ -46,7 +39,6 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       ..style.border = 'none'
       ..style.backgroundColor = 'black';
 
-    // Registrar el VideoElement para usarlo como widget
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => _video);
   }
 
@@ -72,37 +64,20 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       setState(() => _errorText = 'First, Turn On The AI Engine');
       return;
     }
-
-    setState(() {
-      _errorText = null;
-      _isLoading = true;
-    });
+    setState(() { _errorText = null; _isLoading = true; });
 
     try {
-      // Pedir cámara con el mínimo de constraints para máxima compatibilidad
-      final stream = await html.window.navigator.mediaDevices!
-          .getUserMedia({'video': true, 'audio': false});
-
-      // Pequeña pausa para evitar carreras raras justo después del popup
+      final stream = await html.window.navigator.mediaDevices!.getUserMedia({'video': true, 'audio': false});
       await Future<void>.delayed(const Duration(milliseconds: 120));
-
       _stream = stream;
       _video.srcObject = stream;
-
-      setState(() {
-        _cameraOn = true;
-        _isLoading = false;
-      });
+      setState(() { _cameraOn = true; _isLoading = false; });
     } catch (e) {
       setState(() {
         _isLoading = false;
         _cameraOn = false;
         _stopStream();
-
-        _errorText =
-            'Camera error (Web): $e\n\n'
-            'If you have more than 1 camera, pick the real webcam in the popup.\n'
-            'Also close apps that may use the camera (Meet/Teams/OBS).';
+        _errorText = 'Camera error (Web): $e';
       });
     }
   }
@@ -110,11 +85,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   Future<void> _turnOffCamera() async {
     setState(() => _isLoading = true);
     _stopStream();
-    setState(() {
-      _cameraOn = false;
-      _isLoading = false;
-      _errorText = null;
-    });
+    setState(() { _cameraOn = false; _isLoading = false; _errorText = null; });
   }
 
   Future<void> _toggleCamera() async {
@@ -125,147 +96,127 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     }
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    const buttonRadius = 16.0;
-
+    final double screenHeight = MediaQuery.of(context).size.height;
     final analyzingActive = widget.engineOn && _cameraOn;
     final signActive = widget.engineOn && _cameraOn;
 
     return Container(
       width: double.infinity,
-      color: AppColors.bg,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 70),
+      constraints: BoxConstraints(minHeight: screenHeight),
+      color: AppColors.bgAlt, 
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: const BoxConstraints(maxWidth: 1000), 
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'Camera test',
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
+                style: GoogleFonts.lalezar(fontSize: 44, fontWeight: FontWeight.w700, color: AppColors.text, letterSpacing: 1.5),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              const SizedBox(height: 12),
+              Text(
                 'Verify the system understands you before joining a meeting.',
-                style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600),
+                style: GoogleFonts.inter(color: AppColors.muted, fontWeight: FontWeight.w400, fontSize: 16),
               ),
-              const SizedBox(height: 24),
-
-              if (_errorText != null)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF7F1D1D).withOpacity(0.55),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.8)),
-                    ),
-                    child: Text(
-                      _errorText!,
-                      style: const TextStyle(
-                        color: Color(0xFFFCA5A5),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                        height: 1.25,
-                      ),
-                    ),
-                  ),
-                ),
-
-              if (_errorText != null) const SizedBox(height: 14),
+              const SizedBox(height: 48),
 
               LayoutBuilder(
                 builder: (context, c) {
-                  final isNarrow = c.maxWidth < 850;
+                  final isNarrow = c.maxWidth < 800;
 
-                  final preview = Container(
-                    height: 260,
+                  final previewBox = Container(
+                    height: 420, // Altura fija
                     decoration: BoxDecoration(
                       color: Colors.black,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: _cameraOn
-                            ? AppColors.primary.withOpacity(0.95)
-                            : Colors.white.withOpacity(0.25),
-                        width: 2,
-                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.muted.withOpacity(0.8), width: 4),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                       child: _buildPreview(),
                     ),
                   );
 
-                  final panel = Container(
-                    padding: const EdgeInsets.all(18),
+                    final controlPanel = Container(
+                    height: 420,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 36),
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withOpacity(0.55),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withOpacity(0.06)),
+                      color: const Color(0xFF141A23),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Control panel', style: TextStyle(fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 12),
-                        SizedBox(
+                        Text('Control panel', style: GoogleFonts.lalezar(color: AppColors.text, fontSize: 18, fontWeight: FontWeight.w500, letterSpacing: 1.2)),
+                        const SizedBox(height: 24),
+                        
+                        Container(
                           width: double.infinity,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 4)),
+                            ],
+                          ),
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _toggleCamera,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: const Color(0xFF3B82F6),
                               foregroundColor: AppColors.text,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(buttonRadius),
-                              ),
                             ),
-                            child: Text(
-                              _cameraOn ? 'Turn Of Camera' : 'Turn On Camera',
-                              style: const TextStyle(fontWeight: FontWeight.w900),
-                            ),
+                            child: _isLoading 
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.text))
+                              : Text(_cameraOn ? 'Turn Off Camera' : 'Turn On Camera', style: GoogleFonts.inter(fontWeight: FontWeight.w400)),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        const Text('Estado:', style: TextStyle(fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 6),
+                        
+                        const SizedBox(height: 32),
+                        Divider(color: Colors.white.withOpacity(0.05)),
+                        
+                        const SizedBox(height: 24), 
+                        
+                        Text('Estado:', style: GoogleFonts.lalezar(color: AppColors.text, fontWeight: FontWeight.w500, fontSize: 16, letterSpacing: 1.2)),
+                        const SizedBox(height: 12),
                         Text(
                           _isLoading ? 'Starting...' : 'Press the button to start',
-                          style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.inter(color: AppColors.muted, fontSize: 14),
                         ),
-                        const SizedBox(height: 10),
-                        _StateLine(
-                          color: analyzingActive ? AppColors.primary : AppColors.muted,
-                          text: 'Analyzing',
-                        ),
-                        const SizedBox(height: 8),
-                        _StateLine(
-                          color: signActive ? AppColors.success : AppColors.muted,
-                          text: 'Sign Detected',
-                        ),
+                        const SizedBox(height: 16),
+                        
+                        _StateLine(isActive: analyzingActive, color: const Color(0xFF3B82F6), text: 'Analyzing'),
+                        const SizedBox(height: 12),
+                        _StateLine(isActive: signActive, color: const Color(0xFF10B981), text: 'Sign Detected'),
+
+                        const Spacer(),
+
+                        if (_errorText != null) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                            child: Text(_errorText!, style: const TextStyle(color: Color.fromARGB(255, 254, 89, 89), fontSize: 12)),
+                          )
+                        ],
                       ],
                     ),
                   );
 
                   if (isNarrow) {
-                    return Column(
-                      children: [
-                        preview,
-                        const SizedBox(height: 14),
-                        panel,
-                      ],
-                    );
+                    return Column(children: [previewBox, const SizedBox(height: 24), controlPanel]);
                   }
 
                   return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start, 
                     children: [
-                      Expanded(flex: 3, child: preview),
-                      const SizedBox(width: 18),
-                      Expanded(flex: 2, child: panel),
+                      Expanded(flex: 8, child: previewBox),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 5, child: controlPanel),
                     ],
                   );
                 },
@@ -278,40 +229,39 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   }
 
   Widget _buildPreview() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFF3B82F6)));
 
     if (!_cameraOn) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.videocam_off_outlined, color: AppColors.muted, size: 26),
-            SizedBox(height: 8),
-            Text('Camera standby', style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w700)),
+          children: [
+            Icon(Icons.videocam_outlined, color: AppColors.text.withOpacity(0.3), size: 48),
+            const SizedBox(height: 12),
+            Text('Camera standby', style: GoogleFonts.inter(color: AppColors.text.withOpacity(0.4), fontSize: 16)),
           ],
         ),
       );
     }
-
     return HtmlElementView(viewType: _viewType);
   }
 }
 
 class _StateLine extends StatelessWidget {
+  final bool isActive;
   final Color color;
   final String text;
 
-  const _StateLine({required this.color, required this.text});
+  const _StateLine({required this.isActive, required this.color, required this.text});
 
   @override
   Widget build(BuildContext context) {
+    final currentColor = isActive ? color : AppColors.text.withOpacity(0.15);
     return Row(
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 10),
-        Text(text, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: currentColor, shape: BoxShape.circle)),
+        const SizedBox(width: 12),
+        Text(text, style: GoogleFonts.inter(color: isActive ? AppColors.text : AppColors.text.withOpacity(0.4), fontSize: 13)),
       ],
     );
   }
