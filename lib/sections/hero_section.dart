@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../theme/app_colors.dart';
+import '../utils/responsive_layout.dart';
 
 class HeroSection extends StatelessWidget {
   final bool engineOn;
+  final bool engineBusy;
   final VoidCallback onToggleEngine;
 
   const HeroSection({
     super.key,
     required this.engineOn,
+    required this.engineBusy,
     required this.onToggleEngine,
   });
 
-@override
+  @override
   Widget build(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
-    const buttonRadius = 12.0;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final scale = responsiveScale(context, min: 0.9, max: 1.35);
+    final maxWidth = responsiveMaxWidth(context, base: 1100);
 
     return Container(
       width: double.infinity,
-      constraints: BoxConstraints(
-        minHeight: screenHeight,
-      ),
+      constraints: BoxConstraints(minHeight: screenHeight),
       decoration: BoxDecoration(
         color: AppColors.bg,
         gradient: RadialGradient(
@@ -35,16 +38,21 @@ class HeroSection extends StatelessWidget {
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: BoxConstraints(maxWidth: maxWidth),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            padding: EdgeInsets.symmetric(
+              horizontal: 20 * scale,
+              vertical: 40 * scale,
+            ),
             child: Column(
-              mainAxisSize: MainAxisSize.min, 
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Etiqueta superior
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24 * scale,
+                    vertical: 10 * scale,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(999),
@@ -53,15 +61,14 @@ class HeroSection extends StatelessWidget {
                   child: Text(
                     'THESIS PROJECT 2026',
                     style: GoogleFonts.inter(
-                      fontSize: 13,
+                      fontSize: 13 * scale,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
-                      letterSpacing: 0.4,
+                      letterSpacing: 0.4 * scale,
                     ),
                   ),
                 ),
-                const SizedBox(height: 25),
-                // Título Principal
+                SizedBox(height: 25 * scale),
                 ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
                     begin: Alignment.topCenter,
@@ -75,52 +82,64 @@ class HeroSection extends StatelessWidget {
                     'Your voice in meetings,\npowered by your hands.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.lalezar(
-                      fontSize: 76,
+                      fontSize: 76 * scale,
                       height: 1.05,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 2.5,
+                      letterSpacing: 2.5 * scale,
                       color: Colors.white,
                     ),
                   ),
                 ),
-                const SizedBox(height: 18),
-                // Subtítulo
+                SizedBox(height: 18 * scale),
                 Text(
                   'American Sign Language (ASL) to speech translation.\n'
                   'Natively compatible with Zoom, Teams, and Google Meet.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                    fontSize: 18,
+                    fontSize: 18 * scale,
                     height: 1.6,
                     color: AppColors.muted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 34),
-                // Botones (Acciones)
+                SizedBox(height: 34 * scale),
                 Wrap(
-                  spacing: 14,
-                  runSpacing: 12,
+                  spacing: 14 * scale,
+                  runSpacing: 12 * scale,
                   alignment: WrapAlignment.center,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: onToggleEngine,
+                      onPressed: engineBusy ? null : onToggleEngine,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 22 * scale,
+                          vertical: 20 * scale,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(buttonRadius),
+                          borderRadius: BorderRadius.circular(12 * scale),
                         ),
                         elevation: 0,
                       ),
                       icon: Icon(
-                        engineOn ? Icons.stop_circle_outlined : Icons.play_arrow_rounded,
-                        size: 18,
+                        engineBusy
+                            ? Icons.hourglass_top_rounded
+                            : engineOn
+                                ? Icons.stop_circle_outlined
+                                : Icons.play_arrow_rounded,
+                        size: 18 * scale,
                       ),
                       label: Text(
-                        engineOn ? 'Stop AI engine' : 'Start AI engine',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w400, fontSize: 14),
+                        engineBusy
+                            ? 'Starting...'
+                            : engineOn
+                                ? 'Stop AI engine'
+                                : 'Start AI engine',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14 * scale,
+                        ),
                       ),
                     ),
                     OutlinedButton(
@@ -128,14 +147,20 @@ class HeroSection extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: BorderSide(color: Colors.white.withOpacity(0.18)),
-                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 22 * scale,
+                          vertical: 20 * scale,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(buttonRadius),
+                          borderRadius: BorderRadius.circular(12 * scale),
                         ),
                       ),
                       child: Text(
                         'View Demo',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w400, fontSize: 14),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14 * scale,
+                        ),
                       ),
                     ),
                   ],

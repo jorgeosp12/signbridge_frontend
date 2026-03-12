@@ -5,12 +5,14 @@ class StatusPill extends StatelessWidget {
   final bool isOnline;
   final String onlineText;
   final String offlineText;
+  final double scale;
 
   const StatusPill({
     super.key,
     required this.isOnline,
     this.onlineText = 'System Online',
     this.offlineText = 'System Offline',
+    this.scale = 1.0,
   });
 
   @override
@@ -19,7 +21,10 @@ class StatusPill extends StatelessWidget {
     final text = isOnline ? onlineText : offlineText;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: 14 * scale,
+        vertical: 8 * scale,
+      ),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.25),
         border: Border.all(color: Colors.white.withOpacity(0.08)),
@@ -29,15 +34,15 @@ class StatusPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: 8 * scale,
+            height: 8 * scale,
             decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10 * scale),
           Text(
             text,
-            style: const TextStyle(
-              fontSize: 12,
+            style: TextStyle(
+              fontSize: 12 * scale,
               fontWeight: FontWeight.w600,
               color: AppColors.text,
             ),

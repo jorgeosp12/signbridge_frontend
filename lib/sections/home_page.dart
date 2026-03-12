@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
   void _onScrollSpy() {
     if (!mounted) return;
 
-    final triggerPoint = MediaQuery.of(context).size.height * 0.3; 
+    final triggerPoint = MediaQuery.of(context).size.height * 0.3;
     String? activeSection;
 
     final Map<String, GlobalKey> sections = {
@@ -51,12 +51,14 @@ class _HomePageState extends State<HomePage> {
     for (var entry in sections.entries) {
       final key = entry.value;
       if (key.currentContext != null) {
-        final RenderBox box = key.currentContext!.findRenderObject() as RenderBox;
+        final RenderBox box =
+            key.currentContext!.findRenderObject() as RenderBox;
         final position = box.localToGlobal(Offset.zero).dy;
-        
-        if (position <= triggerPoint && (position + box.size.height) > triggerPoint) {
+
+        if (position <= triggerPoint &&
+            (position + box.size.height) > triggerPoint) {
           activeSection = entry.key;
-          break; 
+          break;
         }
       }
     }
@@ -67,12 +69,20 @@ class _HomePageState extends State<HomePage> {
 
   void _scrollToSection(String sectionName) {
     GlobalKey? targetKey;
-    
+
     switch (sectionName) {
-      case 'Home': targetKey = _homeKey; break;
-      case 'Features': targetKey = _featuresKey; break;
-      case 'Tutorial': targetKey = _tutorialKey; break;
-      case 'Demo': targetKey = _demoKey; break;
+      case 'Home':
+        targetKey = _homeKey;
+        break;
+      case 'Features':
+        targetKey = _featuresKey;
+        break;
+      case 'Tutorial':
+        targetKey = _tutorialKey;
+        break;
+      case 'Demo':
+        targetKey = _demoKey;
+        break;
     }
 
     if (targetKey != null && targetKey.currentContext != null) {
@@ -91,15 +101,14 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, 
+      backgroundColor: Colors.black,
       body: Column(
         children: [
           NavBar(
             selected: _currentSection,
             systemOnline: _engineOn,
-            onSelect: _scrollToSection, 
+            onSelect: _scrollToSection,
           ),
-
           Expanded(
             child: SingleChildScrollView(
               controller: _scrollController,
@@ -107,19 +116,23 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   //ENVOLVEMOS CADA SECCIÓN EN UN CONTAINER CON SU LLAVE
                   Container(
-                    key: _homeKey, 
-                    child: HeroSection(engineOn: _engineOn, onToggleEngine: _toggleEngine),
+                    key: _homeKey,
+                    child: HeroSection(
+                      engineOn: _engineOn,
+                      engineBusy: false,
+                      onToggleEngine: _toggleEngine,
+                    ),
                   ),
                   Container(
-                    key: _featuresKey, 
+                    key: _featuresKey,
                     child: const FeaturesSection(),
                   ),
                   Container(
-                    key: _tutorialKey, 
+                    key: _tutorialKey,
                     child: const HowItWorksSection(),
                   ),
                   Container(
-                    key: _demoKey, 
+                    key: _demoKey,
                     child: CameraTestSection(engineOn: _engineOn),
                   ),
                   // El Footer no lleva llave porque no está en el NavBar

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../utils/responsive_layout.dart';
 
 class SectionContainer extends StatelessWidget {
   final Widget child;
@@ -15,13 +16,14 @@ class SectionContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxWidth = responsiveMaxWidth(context, base: 1100);
     return Container(
       width: double.infinity,
       color: backgroundColor ?? AppColors.bg,
       padding: padding,
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: BoxConstraints(maxWidth: maxWidth),
           child: child,
         ),
       ),
