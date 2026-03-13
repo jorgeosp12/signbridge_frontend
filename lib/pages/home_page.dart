@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _engineOn = false;
       });
-      _showEngineMessage('AI engine stopped.');
+      _showEngineMessage('Motor de IA apagado.');
       return;
     }
 
@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _engineOn = true;
       });
-      _showEngineMessage('AI engine online (${health.device}).');
+      _showEngineMessage('Motor de IA encendido y listo.');
     } catch (error) {
       if (!mounted) {
         return;
@@ -109,7 +109,8 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _engineOn = false;
       });
-      _showEngineMessage('Could not start AI engine: $error', isError: true);
+      debugPrint('Engine start error: $error');
+      _showEngineMessage(_friendlyEngineError(error), isError: true);
     } finally {
       if (mounted) {
         setState(() {
@@ -128,6 +129,27 @@ class _HomePageState extends State<HomePage> {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  String _friendlyEngineError(Object error) {
+    if (error is TimeoutException) {
+      return 'El servidor tardo demasiado en responder. Intentalo de nuevo.';
+    }
+
+    if (error is ApiException) {
+      if (error.statusCode == 403) {
+        return 'Falta configurar la conexion con el servidor.';
+      }
+      if (error.statusCode == 503) {
+        return 'El servidor se esta iniciando. Intentalo en unos segundos.';
+      }
+      if (error.statusCode == 404) {
+        return 'No se encontro el servicio de IA. Revisa la URL del backend.';
+      }
+      return 'No se pudo iniciar el motor de IA en este momento.';
+    }
+
+    return 'No se pudo conectar con el servidor en este momento.';
   }
 
   @override

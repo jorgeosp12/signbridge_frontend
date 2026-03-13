@@ -104,7 +104,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     );
 
     if (RuntimeConfig.apiKey.isEmpty) {
-      _errorText = 'Missing SIGNBRIDGE_API_KEY. Add it using --dart-define.';
+      _errorText = 'Falta la clave de conexion del servicio.';
     }
   }
 
@@ -180,15 +180,14 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   Future<void> _turnOnCamera() async {
     if (!widget.engineOn) {
       setState(() {
-        _errorText = 'First, start the AI engine from the main section.';
+        _errorText = 'Primero enciende el motor de IA.';
       });
       return;
     }
 
     if (RuntimeConfig.apiKey.isEmpty) {
       setState(() {
-        _errorText =
-            'Missing SIGNBRIDGE_API_KEY. Prediction requests are blocked.';
+        _errorText = 'Falta la clave de conexion del servicio.';
       });
       return;
     }
@@ -236,11 +235,12 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         return;
       }
 
+      debugPrint('Camera initialization failed: $error');
       setState(() {
         _isLoading = false;
         _cameraOn = false;
         _stopStream();
-        _errorText = 'Camera initialization failed: $error';
+        _errorText = _friendlyCameraError(error);
         _statusText = 'Camera is off.';
       });
     }
@@ -296,9 +296,10 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       _consumeExtraction(extraction);
     } catch (error) {
       if (mounted) {
+        debugPrint('Frame processing failed: $error');
         setState(() {
-          _errorText = 'Frame processing failed: $error';
-          _statusText = 'Capture paused due to processing error.';
+          _errorText = _friendlyFrameError(error);
+          _statusText = 'La captura se pauso por un problema temporal.';
         });
       }
     } finally {
@@ -420,16 +421,19 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       });
     } on ApiException catch (error) {
       if (mounted) {
+        debugPrint(
+            'Prediction request failed [${error.statusCode}]: ${error.message}');
         setState(() {
-          _errorText = 'API ${error.statusCode}: ${error.message}';
-          _statusText = 'Prediction failed.';
+          _errorText = _friendlyPredictionError(error);
+          _statusText = 'No se pudo completar la prediccion.';
         });
       }
     } catch (error) {
       if (mounted) {
+        debugPrint('Prediction failed: $error');
         setState(() {
-          _errorText = 'Prediction error: $error';
-          _statusText = 'Prediction failed.';
+          _errorText = _friendlyPredictionError(error);
+          _statusText = 'No se pudo completar la prediccion.';
         });
       }
     } finally {
@@ -482,8 +486,9 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       });
     } catch (error) {
       if (mounted) {
+        debugPrint('Voice output failed: $error');
         setState(() {
-          _errorText = 'Could not generate voice output: $error';
+          _errorText = 'No se pudo reproducir la voz. Intentalo de nuevo.';
         });
       }
     } finally {
@@ -510,6 +515,43 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       _sentenceWords.clear();
       _statusText = 'Sentence cleared.';
     });
+  }
+
+  String _friendlyCameraError(Object error) {
+    if (error is TimeoutException) {
+      return 'La camara tardo demasiado en iniciar. Intentalo de nuevo.';
+    }
+    return 'No se pudo activar la camara. Revisa permisos del navegador y vuelve a intentar.';
+  }
+
+  String _friendlyFrameError(Object error) {
+    return 'No pudimos analizar esta sena. Reinicia la camara e intenta otra vez.';
+  }
+
+  String _friendlyPredictionError(Object error) {
+    if (error is TimeoutException) {
+      return 'El servidor tardo demasiado en responder. Intentalo de nuevo.';
+    }
+
+    if (error is ApiException) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        return 'La app no pudo autenticarse con el servidor.';
+      }
+      if (error.statusCode == 422) {
+        return 'La sena fue muy corta o incompleta. Hazla de nuevo.';
+      }
+      if (error.statusCode == 429) {
+        return 'Hay muchas solicitudes seguidas. Espera unos segundos.';
+      }
+      if (error.statusCode == 503) {
+        return 'El servidor esta ocupado o iniciando. Intenta nuevamente en breve.';
+      }
+      if (error.statusCode >= 500) {
+        return 'El servicio no esta disponible por ahora. Intentalo mas tarde.';
+      }
+    }
+
+    return 'No se pudo traducir la sena en este momento.';
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
