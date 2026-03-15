@@ -14,7 +14,7 @@ class FooterSection extends StatelessWidget {
     final maxWidth = responsiveMaxWidth(context, base: 1000);
 
     return SectionContainer(
-      backgroundColor: AppColors.surface.withOpacity(0.5),
+      backgroundColor: AppColors.bg.withOpacity(0.5),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(

@@ -142,27 +142,6 @@ class HeroSection extends StatelessWidget {
                         ),
                       ),
                     ),
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white.withOpacity(0.18)),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 22 * scale,
-                          vertical: 20 * scale,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12 * scale),
-                        ),
-                      ),
-                      child: Text(
-                        'View Demo',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 14 * scale,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ],

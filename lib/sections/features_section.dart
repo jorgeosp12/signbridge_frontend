@@ -15,7 +15,7 @@ class FeaturesSection extends StatelessWidget {
     final contentMax = responsiveMaxWidth(context, base: 1100);
 
     return SectionContainer(
-      backgroundColor: AppColors.surface.withOpacity(0.5),
+      backgroundColor: AppColors.bgAlt.withOpacity(0.5),
       child: Container(
         constraints: BoxConstraints(minHeight: screenHeight),
         width: double.infinity,

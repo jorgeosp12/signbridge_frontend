@@ -104,7 +104,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     );
 
     if (RuntimeConfig.apiKey.isEmpty) {
-      _errorText = 'Falta la clave de conexion del servicio.';
+      _errorText = 'The service connection key is missing.';
     }
   }
 
@@ -180,14 +180,14 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   Future<void> _turnOnCamera() async {
     if (!widget.engineOn) {
       setState(() {
-        _errorText = 'Primero enciende el motor de IA.';
+        _errorText = 'First, turn on the AI engine.';
       });
       return;
     }
 
     if (RuntimeConfig.apiKey.isEmpty) {
       setState(() {
-        _errorText = 'Falta la clave de conexion del servicio.';
+        _errorText = 'The service connection key is missing.';
       });
       return;
     }
@@ -195,7 +195,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     setState(() {
       _isLoading = true;
       _errorText = null;
-      _statusText = 'Starting camera and MediaPipe...';
+      _statusText = 'Starting camera and MediaPipe';
     });
 
     try {
@@ -226,7 +226,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       setState(() {
         _cameraOn = true;
         _isLoading = false;
-        _statusText = 'Camera active. Waiting for hands...';
+        _statusText = 'Camera active. Waiting for hands';
       });
 
       _hotkeysFocusNode.requestFocus();
@@ -249,7 +249,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   Future<void> _turnOffCamera() async {
     setState(() {
       _isLoading = true;
-      _statusText = 'Shutting down camera...';
+      _statusText = 'Shutting down camera';
     });
 
     _frameTimer?.cancel();
@@ -299,7 +299,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         debugPrint('Frame processing failed: $error');
         setState(() {
           _errorText = _friendlyFrameError(error);
-          _statusText = 'La captura se pauso por un problema temporal.';
+          _statusText = 'The capture was paused due to a temporary problem.';
         });
       }
     } finally {
@@ -358,7 +358,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     if (_captureState == _CaptureState.idle && extraction.handsVisible) {
       setState(() {
         _captureState = _CaptureState.signing;
-        _statusText = 'Recording sign...';
+        _statusText = 'Recording sign';
         _signFrames
           ..clear()
           ..add(extraction.features);
@@ -382,7 +382,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         setState(() {
           _captureState = _CaptureState.predicting;
           _isPredicting = true;
-          _statusText = 'Sending sign to backend...';
+          _statusText = 'Sending sign to backend';
         });
 
         unawaited(_predictCurrentSign(framesForPrediction));
@@ -425,7 +425,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
             'Prediction request failed [${error.statusCode}]: ${error.message}');
         setState(() {
           _errorText = _friendlyPredictionError(error);
-          _statusText = 'No se pudo completar la prediccion.';
+          _statusText = 'The prediction could not be completed.';
         });
       }
     } catch (error) {
@@ -433,7 +433,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         debugPrint('Prediction failed: $error');
         setState(() {
           _errorText = _friendlyPredictionError(error);
-          _statusText = 'No se pudo completar la prediccion.';
+          _statusText = 'The prediction could not be completed.';
         });
       }
     } finally {
@@ -488,7 +488,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       if (mounted) {
         debugPrint('Voice output failed: $error');
         setState(() {
-          _errorText = 'No se pudo reproducir la voz. Intentalo de nuevo.';
+          _errorText = 'The voice could not be played. Please try again.';
         });
       }
     } finally {
@@ -519,39 +519,39 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
   String _friendlyCameraError(Object error) {
     if (error is TimeoutException) {
-      return 'La camara tardo demasiado en iniciar. Intentalo de nuevo.';
+      return 'The camera took too long to start. Please try again.';
     }
-    return 'No se pudo activar la camara. Revisa permisos del navegador y vuelve a intentar.';
+    return 'The camera could not be activated. Please check your browser permissions and try again.';
   }
 
   String _friendlyFrameError(Object error) {
-    return 'No pudimos analizar esta sena. Reinicia la camara e intenta otra vez.';
+    return 'We were unable to analyze this signal. Please restart your camera and try again.';
   }
 
   String _friendlyPredictionError(Object error) {
     if (error is TimeoutException) {
-      return 'El servidor tardo demasiado en responder. Intentalo de nuevo.';
+      return 'The server took too long to respond. Please try again.';
     }
 
     if (error is ApiException) {
       if (error.statusCode == 401 || error.statusCode == 403) {
-        return 'La app no pudo autenticarse con el servidor.';
+        return 'The app could not authenticate with the server.';
       }
       if (error.statusCode == 422) {
-        return 'La sena fue muy corta o incompleta. Hazla de nuevo.';
+        return 'The sign was too short or incomplete. Do it again.';
       }
       if (error.statusCode == 429) {
-        return 'Hay muchas solicitudes seguidas. Espera unos segundos.';
+        return 'There are many requests coming in one after the other. Please wait a few seconds.';
       }
       if (error.statusCode == 503) {
-        return 'El servidor esta ocupado o iniciando. Intenta nuevamente en breve.';
+        return 'The server is busy or starting up. Please try again shortly.';
       }
       if (error.statusCode >= 500) {
-        return 'El servicio no esta disponible por ahora. Intentalo mas tarde.';
+        return 'The service is currently unavailable. Please try again later.';
       }
     }
 
-    return 'No se pudo traducir la sena en este momento.';
+    return 'The sign could not be translated at this time.';
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -725,7 +725,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                               ),
                               child: Text(
                                 _isConfirmingSentence
-                                    ? 'Confirming...'
+                                    ? 'Confirming'
                                     : 'Confirm Sentence (Enter)',
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.w600,
@@ -877,7 +877,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                       SizedBox(height: 8 * scale),
                       Text(
                         _sentenceWords.isEmpty
-                            ? 'Waiting signs...'
+                            ? 'Waiting signs'
                             : _sentenceWords.join(' '),
                         style: GoogleFonts.inter(
                           color: _sentenceWords.isEmpty
