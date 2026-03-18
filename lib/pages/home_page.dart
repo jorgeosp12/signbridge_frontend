@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../config/runtime_config.dart';
 import '../sections/camera_test_section.dart';
@@ -41,10 +42,15 @@ class _HomePageState extends State<HomePage> {
       baseUrl: RuntimeConfig.apiBaseUrl,
       apiKey: RuntimeConfig.apiKey,
     );
+    _scroll.addListener(_updateSelectedSectionFromScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateSelectedSectionFromScroll();
+    });
   }
 
   @override
   void dispose() {
+    _scroll.removeListener(_updateSelectedSectionFromScroll);
     _scroll.dispose();
     _apiClient.close();
     super.dispose();
@@ -56,6 +62,59 @@ class _HomePageState extends State<HomePage> {
     if (ctx == null) return;
     Scrollable.ensureVisible(ctx,
         duration: const Duration(milliseconds: 450), curve: Curves.easeInOut);
+  }
+
+  void _updateSelectedSectionFromScroll() {
+    if (!_scroll.hasClients || !mounted) {
+      return;
+    }
+
+    const activationOffset = 140.0;
+    final currentOffset = _scroll.offset + activationOffset;
+    final sections = <({String label, GlobalKey key})>[
+      (label: 'Home', key: _homeKey),
+      (label: 'Features', key: _featuresKey),
+      (label: 'Tutorial', key: _tutorialKey),
+      (label: 'Demo', key: _demoKey),
+    ];
+
+    var activeLabel = _selected;
+    for (final section in sections) {
+      final top = _sectionTopOffset(section.key);
+      if (top == null) {
+        continue;
+      }
+      if (currentOffset >= top) {
+        activeLabel = section.label;
+      } else {
+        break;
+      }
+    }
+
+    if (activeLabel != _selected) {
+      setState(() => _selected = activeLabel);
+    }
+  }
+
+  double? _sectionTopOffset(GlobalKey key) {
+    final context = key.currentContext;
+    if (context == null) {
+      return null;
+    }
+
+    final renderObject = context.findRenderObject();
+    if (renderObject == null || !renderObject.attached) {
+      return null;
+    }
+
+    final viewport = RenderAbstractViewport.of(renderObject);
+    final reveal = viewport.getOffsetToReveal(renderObject, 0).offset;
+    if (!_scroll.hasClients) {
+      return reveal;
+    }
+
+    final maxExtent = _scroll.position.maxScrollExtent;
+    return reveal.clamp(0.0, maxExtent).toDouble();
   }
 
   Future<void> _toggleEngine() async {
@@ -84,14 +143,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
-      final health = await _apiClient.healthCheck();
-      if (!health.isReady) {
-        throw ApiException(
-          statusCode: 503,
-          message:
-              'Backend not ready yet (status: ${health.status}, model_loaded: ${health.modelLoaded}).',
-        );
-      }
+      await _waitForBackendReady();
 
       if (!mounted) {
         return;
@@ -118,6 +170,36 @@ class _HomePageState extends State<HomePage> {
         });
       }
     }
+  }
+
+  Future<void> _waitForBackendReady() async {
+    final startedAt = DateTime.now();
+    const maxWarmupTime = Duration(seconds: 75);
+
+    while (DateTime.now().difference(startedAt) < maxWarmupTime) {
+      try {
+        final health = await _apiClient.healthCheck(
+          maxAttempts: 1,
+          requestTimeout: const Duration(seconds: 15),
+        );
+        if (health.isReady) {
+          return;
+        }
+      } on TimeoutException {
+        // Backend cold start in progress.
+      } on ApiException catch (error) {
+        final isTransient = error.statusCode == 502 ||
+            error.statusCode == 503 ||
+            error.statusCode == 504;
+        if (!isTransient) {
+          rethrow;
+        }
+      }
+
+      await Future<void>.delayed(const Duration(seconds: 2));
+    }
+
+    throw TimeoutException('Backend warm-up timed out.');
   }
 
   void _showEngineMessage(String message, {bool isError = false}) {

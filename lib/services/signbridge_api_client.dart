@@ -109,22 +109,49 @@ class SignBridgeApiClient {
     _httpClient.close();
   }
 
-  Future<HealthStatus> healthCheck() async {
+  Future<HealthStatus> healthCheck({
+    int maxAttempts = 3,
+    Duration requestTimeout = const Duration(seconds: 20),
+  }) async {
     final uri = Uri.parse('${baseUrl.replaceAll(RegExp(r'/$'), '')}/health');
-    final response = await _httpClient.get(
-      uri,
-      headers: const <String, String>{'Content-Type': 'application/json'},
-    ).timeout(const Duration(seconds: 8));
-
-    if (response.statusCode != 200) {
-      throw ApiException(
-        statusCode: response.statusCode,
-        message: _extractErrorMessage(response.body),
-      );
+    if (maxAttempts < 1) {
+      throw ArgumentError.value(maxAttempts, 'maxAttempts', 'Must be >= 1');
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return HealthStatus.fromJson(decoded);
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final response = await _httpClient.get(
+          uri,
+          headers: const <String, String>{'Content-Type': 'application/json'},
+        ).timeout(requestTimeout);
+
+        if (response.statusCode == 200) {
+          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+          return HealthStatus.fromJson(decoded);
+        }
+
+        final isRetryable = response.statusCode == 502 ||
+            response.statusCode == 503 ||
+            response.statusCode == 504;
+        if (isRetryable && attempt < maxAttempts) {
+          await Future<void>.delayed(Duration(seconds: attempt * 2));
+          continue;
+        }
+
+        throw ApiException(
+          statusCode: response.statusCode,
+          message: _extractErrorMessage(response.body),
+        );
+      } on TimeoutException {
+        if (attempt < maxAttempts) {
+          await Future<void>.delayed(Duration(seconds: attempt * 2));
+          continue;
+        }
+        rethrow;
+      }
+    }
+
+    throw TimeoutException('Health check did not complete in time.');
   }
 
   Future<SignPrediction> predictSign(List<List<double>> keypoints) async {
