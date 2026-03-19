@@ -46,6 +46,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   static const _cooldownFrames = 15;
   static const _maxSignFrames = 150;
   static const _frameInterval = Duration(milliseconds: 33);
+  static const _sentenceProcessingTimeout = Duration(seconds: 4);
+  static const _minWordsForGrammarPass = 3;
 
   late final String _viewType;
   late final html.VideoElement _video;
@@ -479,21 +481,28 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
     var sentenceForOutput = rawSentence;
     var usedGrammarEndpoint = false;
+    final shouldProcessSentence =
+        _sentenceWords.length >= _minWordsForGrammarPass;
 
     try {
-      try {
-        final processedSentence =
-            await _apiClient!.processSentence(rawSentence);
-        if (processedSentence.trim().isNotEmpty) {
-          sentenceForOutput = processedSentence.trim();
-          usedGrammarEndpoint = true;
-        }
-      } catch (error) {
-        debugPrint('Sentence processing failed: $error');
-        if (mounted) {
-          setState(() {
-            _errorText = _friendlySentenceProcessingError(error);
-          });
+      if (shouldProcessSentence) {
+        try {
+          final processedSentence = await _apiClient!.processSentence(
+            rawSentence,
+            maxAttempts: 1,
+            requestTimeout: _sentenceProcessingTimeout,
+          );
+          if (processedSentence.trim().isNotEmpty) {
+            sentenceForOutput = processedSentence.trim();
+            usedGrammarEndpoint = true;
+          }
+        } catch (error) {
+          debugPrint('Sentence processing failed: $error');
+          if (mounted) {
+            setState(() {
+              _errorText = _friendlySentenceProcessingError(error);
+            });
+          }
         }
       }
 
