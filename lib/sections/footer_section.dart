@@ -37,26 +37,35 @@ class FooterSection extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.sign_language,
-                              color: AppColors.primary,
-                              size: 28 * scale,
-                            ),
-                            SizedBox(width: 12 * scale),
-                            Text(
-                              'SignBridge',
-                              style: GoogleFonts.lalezar(
-                                fontSize: 24 * scale,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                letterSpacing: 1.5 * scale,
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Sign',
+                                    style: GoogleFonts.lalezar(
+                                      fontSize: 24 * scale,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      letterSpacing: 1.5 * scale,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Bridge',
+                                    style: GoogleFonts.lalezar(
+                                      fontSize: 24 * scale,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                      letterSpacing: 1.5 * scale,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 16 * scale),
                         Text(
-                          'Sign-to-speech translation technology'
+                          'Sign-to-speech translation technology '
                           'designed for inclusive digital environments.\n'
                           'Aimed at people with speech difficulties.',
                           style: GoogleFonts.inter(
