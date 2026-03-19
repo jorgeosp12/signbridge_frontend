@@ -487,7 +487,6 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         if (processedSentence.trim().isNotEmpty) {
           sentenceForOutput = processedSentence.trim();
           usedGrammarEndpoint = true;
-          TtsService.speak(processedSentence);
         }
       } catch (error) {
         debugPrint('Sentence processing failed: $error');
@@ -499,9 +498,14 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       }
 
       if (RuntimeConfig.enableBrowserTts) {
-        final bridge = _mediaPipeBridge;
-        if (bridge != null) {
-          bridge.callMethod('speakText', <Object?>[sentenceForOutput]);
+        final didSpeak = TtsService.speak(
+          sentenceForOutput,
+          preferredLanguage: RuntimeConfig.ttsLanguage,
+        );
+        if (!didSpeak && mounted) {
+          setState(() {
+            _errorText = 'Voice output is not available in this browser.';
+          });
         }
       }
 

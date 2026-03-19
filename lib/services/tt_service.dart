@@ -1,48 +1,127 @@
 import 'dart:js' as js;
 
-
 class TtsService {
-  static const double _defaultRate   = 0.7;
-  static const double _defaultPitch  = 1.0;
+  static const double _defaultRate = 0.92;
+  static const double _defaultPitch = 1.0;
   static const double _defaultVolume = 1.0;
-  static const String _defaultLang   = 'en-US';
+  static const String _fallbackLang = 'en-US';
 
-  /// Sintetiza y reproduce [text] en voz alta.
-  static void speak(String text) {
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
+  // Reproduce text using the browser Web Speech API.
+  // Returns false when TTS is not available in the current browser.
+  static bool speak(
+    String text, {
+    String preferredLanguage = 'auto',
+  }) {
+    final normalized = _normalizeForSpeech(text);
+    if (normalized.isEmpty) {
+      return false;
+    }
 
-    final synth = js.context['speechSynthesis'];
-    if (synth == null) return;
+    final synthAny = js.context['speechSynthesis'];
+    if (synthAny is! js.JsObject) {
+      return false;
+    }
 
-    synth.callMethod('cancel');
+    final utteranceCtor = js.context['SpeechSynthesisUtterance'];
+    if (utteranceCtor == null) {
+      return false;
+    }
+
+    final targetLanguage = _resolveLanguage(normalized, preferredLanguage);
+    synthAny.callMethod('cancel');
 
     final utterance = js.JsObject(
-      js.context['SpeechSynthesisUtterance'],
-      [trimmed],
+      utteranceCtor,
+      [normalized],
     );
 
-    final selectedVoice = _getBestVoice(synth);
+    final selectedVoice = _getBestVoice(synthAny, targetLanguage);
     if (selectedVoice != null) {
       utterance['voice'] = selectedVoice;
     }
 
-    utterance['lang']   = _defaultLang;
-    utterance['rate']   = _defaultRate;
-    utterance['pitch']  = _defaultPitch;
+    utterance['lang'] = targetLanguage;
+    utterance['rate'] = _defaultRate;
+    utterance['pitch'] = _defaultPitch;
     utterance['volume'] = _defaultVolume;
 
-    synth.callMethod('speak', [utterance]);
+    synthAny.callMethod('speak', [utterance]);
+    return true;
   }
 
-  /// Selecciona la mejor voz disponible siguiendo este orden de prioridad:
-  /// 1. Google en-US
-  /// 2. Cualquier Google en inglés
-  /// 3. Microsoft en-US
-  /// 4. Cualquier Microsoft en inglés
-  /// 5. Cualquier voz en-US
-  /// 6. null (usa la voz por defecto del navegador)
-  static js.JsObject? _getBestVoice(js.JsObject synth) {
+  static String _normalizeForSpeech(String text) {
+    final withSpaces = text
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (withSpaces.isEmpty) {
+      return '';
+    }
+
+    final words = withSpaces.split(' ');
+    final normalizedWords = words.map((word) {
+      final hasLetters = RegExp(r'[A-Za-z]').hasMatch(word);
+      final isAllCaps =
+          hasLetters && word.length > 1 && word == word.toUpperCase();
+      if (isAllCaps) {
+        return word.toLowerCase();
+      }
+      return word;
+    });
+
+    return normalizedWords.join(' ');
+  }
+
+  static String _resolveLanguage(String text, String preferredLanguage) {
+    final requested = preferredLanguage.trim();
+    if (requested.isNotEmpty && requested.toLowerCase() != 'auto') {
+      return requested;
+    }
+
+    if (_looksLikeSpanish(text)) {
+      return 'es-CO';
+    }
+    return _fallbackLang;
+  }
+
+  static bool _looksLikeSpanish(String text) {
+    final lower = text.toLowerCase();
+    if (RegExp(r'[\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00bf\u00a1]')
+        .hasMatch(lower)) {
+      return true;
+    }
+
+    const hints = <String>[
+      ' el ',
+      ' la ',
+      ' de ',
+      ' y ',
+      ' que ',
+      ' para ',
+      ' con ',
+      ' por ',
+      ' una ',
+      ' un ',
+      ' estoy ',
+      ' gracias ',
+      ' hola ',
+    ];
+
+    final padded = ' $lower ';
+    for (final token in hints) {
+      if (padded.contains(token)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static js.JsObject? _getBestVoice(
+    js.JsObject synth,
+    String targetLanguage,
+  ) {
     final js.JsArray voices;
     try {
       voices = synth.callMethod('getVoices') as js.JsArray;
@@ -50,38 +129,51 @@ class TtsService {
       return null;
     }
 
-    if (voices.isEmpty) return null;
+    if (voices.isEmpty) {
+      return null;
+    }
 
-    js.JsObject? googleEnUs;
-    js.JsObject? googleEn;
-    js.JsObject? microsoftEnUs;
-    js.JsObject? microsoftEn;
-    js.JsObject? anyEnUs;
+    final targetLower = targetLanguage.toLowerCase();
+    final targetBase = targetLower.split('-').first;
+
+    js.JsObject? googleExact;
+    js.JsObject? googleBase;
+    js.JsObject? microsoftExact;
+    js.JsObject? microsoftBase;
+    js.JsObject? anyExact;
+    js.JsObject? anyBase;
 
     for (var i = 0; i < voices.length; i++) {
       final voice = voices[i] as js.JsObject;
-      final name  = voice['name'].toString().toLowerCase();
-      final lang  = voice['lang'].toString().toLowerCase();
+      final name = (voice['name']?.toString() ?? '').toLowerCase();
+      final lang = (voice['lang']?.toString() ?? '').toLowerCase();
 
-      final isGoogle    = name.contains('google');
+      final isGoogle = name.contains('google');
       final isMicrosoft = name.contains('microsoft');
-      final isEnUs      = lang == 'en-us';
-      final isEn        = lang.startsWith('en');
+      final matchesExact = lang == targetLower;
+      final matchesBase = lang.startsWith(targetBase);
 
-      if (isGoogle && isEnUs && googleEnUs == null) {
-        googleEnUs = voice;
-      } else if (isGoogle && isEn && googleEn == null) {
-        googleEn = voice;
-      } else if (isMicrosoft && isEnUs && microsoftEnUs == null) {
-        microsoftEnUs = voice;
-      } else if (isMicrosoft && isEn && microsoftEn == null) {
-        microsoftEn = voice;
-      } else if (isEnUs && anyEnUs == null) {
-        anyEnUs = voice;
+      if (isGoogle && matchesExact && googleExact == null) {
+        googleExact = voice;
+      } else if (isGoogle && matchesBase && googleBase == null) {
+        googleBase = voice;
+      } else if (isMicrosoft && matchesExact && microsoftExact == null) {
+        microsoftExact = voice;
+      } else if (isMicrosoft && matchesBase && microsoftBase == null) {
+        microsoftBase = voice;
+      } else if (matchesExact && anyExact == null) {
+        anyExact = voice;
+      } else if (matchesBase && anyBase == null) {
+        anyBase = voice;
       }
     }
 
-    return googleEnUs ?? googleEn ?? microsoftEnUs ?? microsoftEn ?? anyEnUs;
+    return googleExact ??
+        googleBase ??
+        microsoftExact ??
+        microsoftBase ??
+        anyExact ??
+        anyBase;
   }
 
   static void stop() {
@@ -91,40 +183,40 @@ class TtsService {
   static bool get isSupported => js.context['speechSynthesis'] != null;
 
   static void listVoices() {
-    final synth = js.context['speechSynthesis'];
-    if (synth == null) {
-      print('[TTS] Web Speech API no soportada en este navegador.');
+    final synthAny = js.context['speechSynthesis'];
+    if (synthAny is! js.JsObject) {
+      print('[TTS] Web Speech API is not available in this browser.');
       return;
     }
 
     final js.JsArray voices;
     try {
-      voices = synth.callMethod('getVoices') as js.JsArray;
+      voices = synthAny.callMethod('getVoices') as js.JsArray;
     } catch (e) {
-      print('[TTS] Error obteniendo voces: $e');
+      print('[TTS] Failed to read voices: $e');
       return;
     }
 
     if (voices.isEmpty) {
-      print('[TTS] No hay voces disponibles todavía (puede que no hayan cargado aún).');
+      print('[TTS] No voices are available yet.');
       return;
     }
 
-    print('[TTS] ${voices.length} voces disponibles:');
+    print('[TTS] ${voices.length} voices available:');
     for (var i = 0; i < voices.length; i++) {
-      final voice     = voices[i] as js.JsObject;
-      final name      = voice['name'];
-      final lang      = voice['lang'];
-      final local     = voice['localService'];
+      final voice = voices[i] as js.JsObject;
+      final name = voice['name'];
+      final lang = voice['lang'];
+      final local = voice['localService'];
       final isDefault = voice['default'];
       print('  [$i] $name | $lang | local=$local | default=$isDefault');
     }
 
-    final best = _getBestVoice(synth);
+    final best = _getBestVoice(synthAny, _fallbackLang);
     if (best != null) {
-      print('[TTS] Voz seleccionada automáticamente: ${best['name']}');
+      print('[TTS] Auto-selected voice: ${best['name']}');
     } else {
-      print('[TTS] Usando voz por defecto del navegador.');
+      print('[TTS] Using browser default voice.');
     }
   }
 }

@@ -13,4 +13,9 @@ class RuntimeConfig {
     'SIGNBRIDGE_ENABLE_TTS',
     defaultValue: true,
   );
+
+  static const ttsLanguage = String.fromEnvironment(
+    'SIGNBRIDGE_TTS_LANG',
+    defaultValue: 'auto',
+  );
 }
