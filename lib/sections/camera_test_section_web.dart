@@ -11,6 +11,7 @@ import '../config/runtime_config.dart';
 import '../services/signbridge_api_client.dart';
 import '../theme/app_colors.dart';
 import '../utils/responsive_layout.dart';
+import '../services/tt_service.dart';
 
 enum _CaptureState { idle, signing, predicting }
 
@@ -473,7 +474,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     final rawSentence = _sentenceWords.join(' ');
     setState(() {
       _isConfirmingSentence = true;
-      _statusText = 'Processing sentence...';
+      _statusText = 'Processing sentence';
     });
 
     var sentenceForOutput = rawSentence;
@@ -486,6 +487,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         if (processedSentence.trim().isNotEmpty) {
           sentenceForOutput = processedSentence.trim();
           usedGrammarEndpoint = true;
+          TtsService.speak(processedSentence);
         }
       } catch (error) {
         debugPrint('Sentence processing failed: $error');
