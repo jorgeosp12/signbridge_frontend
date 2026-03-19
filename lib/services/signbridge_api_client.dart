@@ -211,6 +211,64 @@ class SignBridgeApiClient {
     );
   }
 
+  Future<String> processSentence(String words) async {
+    final normalized = words.trim();
+    if (normalized.isEmpty) {
+      throw const ApiException(
+        statusCode: 422,
+        message: 'No words provided to process.',
+      );
+    }
+
+    final uri =
+        Uri.parse('${baseUrl.replaceAll(RegExp(r'/$'), '')}/process/sentence');
+    final payload = jsonEncode(<String, dynamic>{'words': normalized});
+
+    for (var attempt = 1; attempt <= maxRetries; attempt++) {
+      final response = await _httpClient
+          .post(
+            uri,
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+            },
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 20));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final sentence = decoded['sentence'];
+        if (sentence is String && sentence.trim().isNotEmpty) {
+          return sentence.trim();
+        }
+        throw const ApiException(
+          statusCode: 500,
+          message: 'Unexpected server response: missing sentence data.',
+        );
+      }
+
+      final isRetryable =
+          response.statusCode == 429 || response.statusCode == 503;
+      if (isRetryable && attempt < maxRetries) {
+        final retryAfter =
+            int.tryParse(response.headers['retry-after'] ?? '') ?? 1;
+        await Future<void>.delayed(Duration(seconds: retryAfter));
+        continue;
+      }
+
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: _extractErrorMessage(response.body),
+      );
+    }
+
+    throw const ApiException(
+      statusCode: 503,
+      message: 'Sentence processor busy after multiple retries.',
+    );
+  }
+
   String _extractErrorMessage(String rawBody) {
     try {
       final decoded = jsonDecode(rawBody) as Map<String, dynamic>;

@@ -470,17 +470,36 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       return;
     }
 
-    final sentence = _sentenceWords.join(' ');
+    final rawSentence = _sentenceWords.join(' ');
     setState(() {
       _isConfirmingSentence = true;
-      _statusText = 'Sentence confirmed.';
+      _statusText = 'Processing sentence...';
     });
 
+    var sentenceForOutput = rawSentence;
+    var usedGrammarEndpoint = false;
+
     try {
+      try {
+        final processedSentence =
+            await _apiClient!.processSentence(rawSentence);
+        if (processedSentence.trim().isNotEmpty) {
+          sentenceForOutput = processedSentence.trim();
+          usedGrammarEndpoint = true;
+        }
+      } catch (error) {
+        debugPrint('Sentence processing failed: $error');
+        if (mounted) {
+          setState(() {
+            _errorText = _friendlySentenceProcessingError(error);
+          });
+        }
+      }
+
       if (RuntimeConfig.enableBrowserTts) {
         final bridge = _mediaPipeBridge;
         if (bridge != null) {
-          bridge.callMethod('speakText', <Object?>[sentence]);
+          bridge.callMethod('speakText', <Object?>[sentenceForOutput]);
         }
       }
 
@@ -493,7 +512,9 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         _lastTopK = const <TopKPrediction>[];
         _selectedTopChoiceLabel = null;
         _lastEditableWordIndex = null;
-        _errorText = null;
+        _statusText = usedGrammarEndpoint
+            ? 'Sentence corrected and confirmed.'
+            : 'Sentence confirmed.';
       });
     } catch (error) {
       if (mounted) {
@@ -588,6 +609,26 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     });
   }
 
+  String _friendlySentenceProcessingError(Object error) {
+    if (error is TimeoutException) {
+      return 'Sentence correction took too long. We used your original sentence.';
+    }
+
+    if (error is ApiException) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        return 'The sentence service could not authenticate. We used your original sentence.';
+      }
+      if (error.statusCode == 429) {
+        return 'Sentence service is busy right now. We used your original sentence.';
+      }
+      if (error.statusCode >= 500) {
+        return 'Sentence service is unavailable. We used your original sentence.';
+      }
+    }
+
+    return 'Could not improve sentence. We used your original sentence.';
+  }
+
   String _friendlyCameraError(Object error) {
     if (error is TimeoutException) {
       return 'The camera took too long to start. Please try again.';
@@ -648,7 +689,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     final screenHeight = MediaQuery.of(context).size.height;
     final scale = responsiveScale(context, min: 0.9, max: 1.3);
     final maxWidth = responsiveMaxWidth(context, base: 1100);
-    final panelHeight = (420 * scale).clamp(360, 620).toDouble();
+    final panelHeight = (520 * scale).clamp(460, 700).toDouble();
     final analyzingActive =
         widget.engineOn && _cameraOn && _captureState != _CaptureState.idle;
     final signDetectedActive = _captureState == _CaptureState.signing;
@@ -724,286 +765,257 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                         border:
                             Border.all(color: Colors.white.withOpacity(0.06)),
                       ),
-                      child: LayoutBuilder(
-                        builder: (context, panelConstraints) {
-                          return SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: panelConstraints.maxHeight,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Control panel',
+                            style: GoogleFonts.lalezar(
+                              color: AppColors.text,
+                              fontSize: 20 * scale,
+                              letterSpacing: 1.2 * scale,
+                            ),
+                          ),
+                          SizedBox(height: 14 * scale),
+                          Text(
+                            _statusText,
+                            style: GoogleFonts.inter(
+                              color: AppColors.muted,
+                              fontSize: 13 * scale,
+                            ),
+                          ),
+                          SizedBox(height: 16 * scale),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 46 * scale,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _toggleCamera,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                foregroundColor: AppColors.text,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(10 * scale),
+                                ),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Control panel',
-                                    style: GoogleFonts.lalezar(
-                                      color: AppColors.text,
-                                      fontSize: 20 * scale,
-                                      letterSpacing: 1.2 * scale,
-                                    ),
-                                  ),
-                                  SizedBox(height: 14 * scale),
-                                  Text(
-                                    _statusText,
-                                    style: GoogleFonts.inter(
-                                      color: AppColors.muted,
-                                      fontSize: 13 * scale,
-                                    ),
-                                  ),
-                                  SizedBox(height: 16 * scale),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 46 * scale,
-                                    child: ElevatedButton(
-                                      onPressed:
-                                          _isLoading ? null : _toggleCamera,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFF3B82F6),
-                                        foregroundColor: AppColors.text,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10 * scale),
-                                        ),
-                                      ),
-                                      child: _isLoading
-                                          ? SizedBox(
-                                              width: 20 * scale,
-                                              height: 20 * scale,
-                                              child:
-                                                  const CircularProgressIndicator(
-                                                strokeWidth: 2.0,
-                                                color: AppColors.text,
-                                              ),
-                                            )
-                                          : Text(
-                                              _cameraOn
-                                                  ? 'Turn Off Camera'
-                                                  : 'Turn On Camera',
-                                              style: GoogleFonts.inter(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14 * scale,
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 10 * scale),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 42 * scale,
-                                    child: OutlinedButton(
-                                      onPressed: _isConfirmingSentence
-                                          ? null
-                                          : _confirmSentence,
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: AppColors.text,
-                                        side: BorderSide(
-                                            color:
-                                                Colors.white.withOpacity(0.2)),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10 * scale),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        _isConfirmingSentence
-                                            ? 'Confirming'
-                                            : 'Confirm Sentence (Enter)',
-                                        style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13 * scale,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 10 * scale),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextButton(
-                                          onPressed: _removeLastWord,
-                                          child: Text(
-                                            'Delete Last (Backspace)',
-                                            style: GoogleFonts.inter(
-                                              color: AppColors.muted,
-                                              fontSize: 12 * scale,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: TextButton(
-                                          onPressed: _clearSentence,
-                                          child: Text(
-                                            'Clear',
-                                            style: GoogleFonts.inter(
-                                              color: AppColors.muted,
-                                              fontSize: 12 * scale,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Divider(
-                                      color: Colors.white.withOpacity(0.08)),
-                                  SizedBox(height: 8 * scale),
-                                  _StateLine(
-                                    isActive: analyzingActive,
-                                    color: const Color(0xFF3B82F6),
-                                    text: 'Analyzing',
-                                    scale: scale,
-                                  ),
-                                  SizedBox(height: 8 * scale),
-                                  _StateLine(
-                                    isActive: signDetectedActive,
-                                    color: const Color(0xFF10B981),
-                                    text: 'Sign detected',
-                                    scale: scale,
-                                  ),
-                                  SizedBox(height: 8 * scale),
-                                  _StateLine(
-                                    isActive: backendActive,
-                                    color: const Color(0xFFF59E0B),
-                                    text: 'Backend request',
-                                    scale: scale,
-                                  ),
-                                  SizedBox(height: 10 * scale),
-                                  if (_lastPredictionLabel != null)
-                                    Text(
-                                      'Last sign: $_lastPredictionLabel (${((_lastPredictionConfidence ?? 0) * 100).toStringAsFixed(1)}%)',
-                                      style: GoogleFonts.inter(
+                              child: _isLoading
+                                  ? SizedBox(
+                                      width: 20 * scale,
+                                      height: 20 * scale,
+                                      child: const CircularProgressIndicator(
+                                        strokeWidth: 2.0,
                                         color: AppColors.text,
-                                        fontSize: 12 * scale,
+                                      ),
+                                    )
+                                  : Text(
+                                      _cameraOn
+                                          ? 'Turn Off Camera'
+                                          : 'Turn On Camera',
+                                      style: GoogleFonts.inter(
                                         fontWeight: FontWeight.w600,
+                                        fontSize: 14 * scale,
                                       ),
                                     ),
-                                  if (_lastLatencyMs != null)
-                                    Text(
-                                      'Latency: $_lastLatencyMs ms',
-                                      style: GoogleFonts.inter(
-                                        color: AppColors.muted,
-                                        fontSize: 11 * scale,
-                                      ),
-                                    ),
-                                  if (_lastTopK.isNotEmpty)
-                                    Text(
-                                      'Top-K: ${_lastTopK.map((item) => '${item.label} ${(item.confidence * 100).toStringAsFixed(1)}%').join(' | ')}',
-                                      style: GoogleFonts.inter(
-                                        color: AppColors.muted,
-                                        fontSize: 11 * scale,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  if (_lastTopK.length > 1 &&
-                                      _lastEditableWordIndex != null &&
-                                      _lastEditableWordIndex! <
-                                          _sentenceWords.length)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 10 * scale),
-                                      child: Builder(
-                                        builder: (context) {
-                                          final validSelection = _lastTopK.any(
-                                            (item) =>
-                                                item.label ==
-                                                _selectedTopChoiceLabel,
-                                          );
-                                          final selectedValue = validSelection
-                                              ? _selectedTopChoiceLabel!
-                                              : _lastTopK.first.label;
-
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Choose result for latest sign',
-                                                style: GoogleFonts.inter(
-                                                  color: AppColors.text,
-                                                  fontSize: 11 * scale,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              SizedBox(height: 6 * scale),
-                                              Wrap(
-                                                spacing: 6 * scale,
-                                                runSpacing: 6 * scale,
-                                                children: _lastTopK.map((item) {
-                                                  final isSelected =
-                                                      item.label ==
-                                                          selectedValue;
-                                                  return ChoiceChip(
-                                                    label: Text(
-                                                      '${item.label} (${(item.confidence * 100).toStringAsFixed(1)}%)',
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    selected: isSelected,
-                                                    onSelected: (_) {
-                                                      _selectTopChoice(
-                                                          item.label);
-                                                    },
-                                                    labelStyle:
-                                                        GoogleFonts.inter(
-                                                      color: AppColors.text,
-                                                      fontSize: 11 * scale,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                    backgroundColor:
-                                                        const Color(0xFF0F172A),
-                                                    selectedColor:
-                                                        const Color(0xFF1D4ED8),
-                                                    side: BorderSide(
-                                                      color: Colors.white
-                                                          .withOpacity(
-                                                              isSelected
-                                                                  ? 0.35
-                                                                  : 0.18),
-                                                    ),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8 * scale),
-                                                    ),
-                                                    visualDensity:
-                                                        VisualDensity.compact,
-                                                    materialTapTargetSize:
-                                                        MaterialTapTargetSize
-                                                            .shrinkWrap,
-                                                  );
-                                                }).toList(growable: false),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  if (_errorText != null)
-                                    Container(
-                                      width: double.infinity,
-                                      padding: EdgeInsets.all(12 * scale),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.12),
-                                        borderRadius:
-                                            BorderRadius.circular(8 * scale),
-                                      ),
-                                      child: Text(
-                                        _errorText!,
-                                        style: GoogleFonts.inter(
-                                          color: const Color(0xFFFCA5A5),
-                                          fontSize: 12 * scale,
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                            ),
+                          ),
+                          SizedBox(height: 10 * scale),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 42 * scale,
+                            child: OutlinedButton(
+                              onPressed: _isConfirmingSentence
+                                  ? null
+                                  : _confirmSentence,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.text,
+                                side: BorderSide(
+                                    color: Colors.white.withOpacity(0.2)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(10 * scale),
+                                ),
+                              ),
+                              child: Text(
+                                _isConfirmingSentence
+                                    ? 'Confirming'
+                                    : 'Confirm Sentence (Enter)',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13 * scale,
+                                ),
                               ),
                             ),
-                          );
-                        },
+                          ),
+                          SizedBox(height: 10 * scale),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _removeLastWord,
+                                  child: Text(
+                                    'Delete Last (Backspace)',
+                                    style: GoogleFonts.inter(
+                                      color: AppColors.muted,
+                                      fontSize: 12 * scale,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _clearSentence,
+                                  child: Text(
+                                    'Clear',
+                                    style: GoogleFonts.inter(
+                                      color: AppColors.muted,
+                                      fontSize: 12 * scale,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Divider(color: Colors.white.withOpacity(0.08)),
+                          SizedBox(height: 8 * scale),
+                          _StateLine(
+                            isActive: analyzingActive,
+                            color: const Color(0xFF3B82F6),
+                            text: 'Analyzing',
+                            scale: scale,
+                          ),
+                          SizedBox(height: 8 * scale),
+                          _StateLine(
+                            isActive: signDetectedActive,
+                            color: const Color(0xFF10B981),
+                            text: 'Sign detected',
+                            scale: scale,
+                          ),
+                          SizedBox(height: 8 * scale),
+                          _StateLine(
+                            isActive: backendActive,
+                            color: const Color(0xFFF59E0B),
+                            text: 'Backend request',
+                            scale: scale,
+                          ),
+                          SizedBox(height: 10 * scale),
+                          if (_lastPredictionLabel != null)
+                            Text(
+                              'Last sign: $_lastPredictionLabel (${((_lastPredictionConfidence ?? 0) * 100).toStringAsFixed(1)}%)',
+                              style: GoogleFonts.inter(
+                                color: AppColors.text,
+                                fontSize: 12 * scale,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          if (_lastLatencyMs != null)
+                            Text(
+                              'Latency: $_lastLatencyMs ms',
+                              style: GoogleFonts.inter(
+                                color: AppColors.muted,
+                                fontSize: 11 * scale,
+                              ),
+                            ),
+                          if (_lastTopK.isNotEmpty)
+                            Text(
+                              'Top-K: ${_lastTopK.map((item) => '${item.label} ${(item.confidence * 100).toStringAsFixed(1)}%').join(' | ')}',
+                              style: GoogleFonts.inter(
+                                color: AppColors.muted,
+                                fontSize: 11 * scale,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          if (_lastTopK.length > 1 &&
+                              _lastEditableWordIndex != null &&
+                              _lastEditableWordIndex! < _sentenceWords.length)
+                            Padding(
+                              padding: EdgeInsets.only(top: 10 * scale),
+                              child: Builder(
+                                builder: (context) {
+                                  final validSelection = _lastTopK.any(
+                                    (item) =>
+                                        item.label == _selectedTopChoiceLabel,
+                                  );
+                                  final selectedValue = validSelection
+                                      ? _selectedTopChoiceLabel!
+                                      : _lastTopK.first.label;
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Choose result for latest sign',
+                                        style: GoogleFonts.inter(
+                                          color: AppColors.text,
+                                          fontSize: 11 * scale,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: 6 * scale),
+                                      Wrap(
+                                        spacing: 6 * scale,
+                                        runSpacing: 6 * scale,
+                                        children: _lastTopK.map((item) {
+                                          final isSelected =
+                                              item.label == selectedValue;
+                                          return ChoiceChip(
+                                            label: Text(
+                                              '${item.label} (${(item.confidence * 100).toStringAsFixed(1)}%)',
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            selected: isSelected,
+                                            onSelected: (_) {
+                                              _selectTopChoice(item.label);
+                                            },
+                                            labelStyle: GoogleFonts.inter(
+                                              color: AppColors.text,
+                                              fontSize: 11 * scale,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            backgroundColor:
+                                                const Color(0xFF0F172A),
+                                            selectedColor:
+                                                const Color(0xFF1D4ED8),
+                                            side: BorderSide(
+                                              color: Colors.white.withOpacity(
+                                                  isSelected ? 0.35 : 0.18),
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8 * scale),
+                                            ),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                          );
+                                        }).toList(growable: false),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          if (_errorText != null)
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(12 * scale),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(8 * scale),
+                              ),
+                              child: Text(
+                                _errorText!,
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFFFCA5A5),
+                                  fontSize: 12 * scale,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     );
 
