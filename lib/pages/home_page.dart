@@ -22,14 +22,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _scroll = ScrollController();
 
-  final _homeKey = GlobalKey();
+  final _homeKey     = GlobalKey();
   final _featuresKey = GlobalKey();
   final _tutorialKey = GlobalKey();
-  final _demoKey = GlobalKey();
+  final _demoKey     = GlobalKey();
 
   String _selected = 'Home';
 
-  bool _engineOn = false;
+  bool _engineOn      = false;
   bool _engineStarting = false;
   late final SignBridgeApiClient _apiClient;
 
@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _apiClient = SignBridgeApiClient(
       baseUrl: RuntimeConfig.apiBaseUrl,
-      apiKey: RuntimeConfig.apiKey,
+      apiKey:  RuntimeConfig.apiKey,
     );
     _scroll.addListener(_updateSelectedSectionFromScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -60,30 +60,29 @@ class _HomePageState extends State<HomePage> {
     setState(() => _selected = label);
     final ctx = key.currentContext;
     if (ctx == null) return;
-    Scrollable.ensureVisible(ctx,
-        duration: const Duration(milliseconds: 450), curve: Curves.easeInOut);
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _updateSelectedSectionFromScroll() {
-    if (!_scroll.hasClients || !mounted) {
-      return;
-    }
+    if (!_scroll.hasClients || !mounted) return;
 
     const activationOffset = 140.0;
-    final currentOffset = _scroll.offset + activationOffset;
+    final currentOffset    = _scroll.offset + activationOffset;
     final sections = <({String label, GlobalKey key})>[
-      (label: 'Home', key: _homeKey),
+      (label: 'Home',     key: _homeKey),
       (label: 'Features', key: _featuresKey),
       (label: 'Tutorial', key: _tutorialKey),
-      (label: 'Demo', key: _demoKey),
+      (label: 'Demo',     key: _demoKey),
     ];
 
     var activeLabel = _selected;
     for (final section in sections) {
       final top = _sectionTopOffset(section.key);
-      if (top == null) {
-        continue;
-      }
+      if (top == null) continue;
       if (currentOffset >= top) {
         activeLabel = section.label;
       } else {
@@ -98,20 +97,14 @@ class _HomePageState extends State<HomePage> {
 
   double? _sectionTopOffset(GlobalKey key) {
     final context = key.currentContext;
-    if (context == null) {
-      return null;
-    }
+    if (context == null) return null;
 
     final renderObject = context.findRenderObject();
-    if (renderObject == null || !renderObject.attached) {
-      return null;
-    }
+    if (renderObject == null || !renderObject.attached) return null;
 
     final viewport = RenderAbstractViewport.of(renderObject);
-    final reveal = viewport.getOffsetToReveal(renderObject, 0).offset;
-    if (!_scroll.hasClients) {
-      return reveal;
-    }
+    final reveal   = viewport.getOffsetToReveal(renderObject, 0).offset;
+    if (!_scroll.hasClients) return reveal;
 
     final maxExtent = _scroll.position.maxScrollExtent;
     return reveal.clamp(0.0, maxExtent).toDouble();
@@ -119,20 +112,14 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _toggleEngine() async {
     if (_engineOn) {
-      setState(() {
-        _engineOn = false;
-      });
-      _showEngineMessage('Motor de IA apagado.');
+      setState(() => _engineOn = false);
+      _showEngineMessage('AI engine turned off.', isError: false);
       return;
     }
 
-    if (_engineStarting) {
-      return;
-    }
+    if (_engineStarting) return;
 
-    setState(() {
-      _engineStarting = true;
-    });
+    setState(() => _engineStarting = true);
 
     try {
       if (RuntimeConfig.apiKey.isEmpty) {
@@ -145,35 +132,22 @@ class _HomePageState extends State<HomePage> {
 
       await _waitForBackendReady();
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
-      setState(() {
-        _engineOn = true;
-      });
-      _showEngineMessage('Motor de IA encendido y listo.');
+      setState(() => _engineOn = true);
+      _showEngineMessage('AI engine powered on and ready.', isError: false);
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _engineOn = false;
-      });
+      if (!mounted) return;
+      setState(() => _engineOn = false);
       debugPrint('Engine start error: $error');
       _showEngineMessage(_friendlyEngineError(error), isError: true);
     } finally {
-      if (mounted) {
-        setState(() {
-          _engineStarting = false;
-        });
-      }
+      if (mounted) setState(() => _engineStarting = false);
     }
   }
 
   Future<void> _waitForBackendReady() async {
-    final startedAt = DateTime.now();
+    final startedAt   = DateTime.now();
     const maxWarmupTime = Duration(seconds: 75);
 
     while (DateTime.now().difference(startedAt) < maxWarmupTime) {
@@ -182,18 +156,14 @@ class _HomePageState extends State<HomePage> {
           maxAttempts: 1,
           requestTimeout: const Duration(seconds: 15),
         );
-        if (health.isReady) {
-          return;
-        }
+        if (health.isReady) return;
       } on TimeoutException {
         // Backend cold start in progress.
       } on ApiException catch (error) {
         final isTransient = error.statusCode == 502 ||
             error.statusCode == 503 ||
             error.statusCode == 504;
-        if (!isTransient) {
-          rethrow;
-        }
+        if (!isTransient) rethrow;
       }
 
       await Future<void>.delayed(const Duration(seconds: 2));
@@ -202,36 +172,63 @@ class _HomePageState extends State<HomePage> {
     throw TimeoutException('Backend warm-up timed out.');
   }
 
-  void _showEngineMessage(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor:
-            isError ? const Color(0xFF7F1D1D) : const Color(0xFF0F172A),
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+  void _showEngineMessage(String message, {required bool isError}) {
+    final bgColor   = isError
+        ? const Color(0xFF7F1D1D)   // rojo oscuro
+        : const Color(0xFF14532D);  // verde oscuro
+
+    final icon = isError
+        ? const Icon(Icons.error_outline, color: Colors.white, size: 20)
+        : const Icon(Icons.check_circle_outline, color: Colors.white, size: 20);
+
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor: bgColor,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          content: Row(
+            children: [
+              icon,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
   }
 
   String _friendlyEngineError(Object error) {
     if (error is TimeoutException) {
-      return 'El servidor tardo demasiado en responder. Intentalo de nuevo.';
+      return 'The system took too long to respond. Please try again.';
     }
-
     if (error is ApiException) {
       if (error.statusCode == 403) {
-        return 'Falta configurar la conexion con el servidor.';
+        return 'The connection to the system needs to be configured.';
       }
       if (error.statusCode == 503) {
-        return 'El servidor se esta iniciando. Intentalo en unos segundos.';
+        return 'The system is starting up. Please try again in a few seconds.';
       }
       if (error.statusCode == 404) {
-        return 'No se encontro el servicio de IA. Revisa la URL del backend.';
+        return 'The AI service could not be found. Please check the backend URL.';
       }
-      return 'No se pudo iniciar el motor de IA en este momento.';
+      return 'The AI engine could not be started at this time.';
     }
-
-    return 'No se pudo conectar con el servidor en este momento.';
+    return 'We were unable to connect to the system at this time.';
   }
 
   @override
@@ -244,18 +241,10 @@ class _HomePageState extends State<HomePage> {
             systemOnline: _systemOnline,
             onSelect: (label) {
               switch (label) {
-                case 'Home':
-                  _scrollTo(_homeKey, 'Home');
-                  break;
-                case 'Features':
-                  _scrollTo(_featuresKey, 'Features');
-                  break;
-                case 'Tutorial':
-                  _scrollTo(_tutorialKey, 'Tutorial');
-                  break;
-                case 'Demo':
-                  _scrollTo(_demoKey, 'Demo');
-                  break;
+                case 'Home':     _scrollTo(_homeKey,     'Home');     break;
+                case 'Features': _scrollTo(_featuresKey, 'Features'); break;
+                case 'Tutorial': _scrollTo(_tutorialKey, 'Tutorial'); break;
+                case 'Demo':     _scrollTo(_demoKey,     'Demo');     break;
               }
             },
           ),
@@ -266,11 +255,9 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Container(key: _homeKey),
                   HeroSection(
-                    engineOn: _engineOn,
+                    engineOn:   _engineOn,
                     engineBusy: _engineStarting,
-                    onToggleEngine: () {
-                      unawaited(_toggleEngine());
-                    },
+                    onToggleEngine: () => unawaited(_toggleEngine()),
                   ),
                   Container(key: _featuresKey),
                   const FeaturesSection(),

@@ -37,7 +37,7 @@ class HowItWorksSection extends StatelessWidget {
               ),
             ),
             Text(
-              'Explanation in Sign Language (LSC)',
+              'Explanation in Colombian Sign Language (LSC)',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: AppColors.muted,

@@ -17,7 +17,7 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dotColor = isOnline ? AppColors.success : const Color(0xFFEF4444);
+    final dotColor = isOnline ? const Color(0xFF10B981) : const Color(0xFFEF4444);
     final text = isOnline ? onlineText : offlineText;
 
     return Container(

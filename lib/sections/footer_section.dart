@@ -136,35 +136,6 @@ class FooterSection extends StatelessWidget {
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.muted,
-                          ),
-                          child: Text(
-                            'Privacy',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13 * scale,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8 * scale),
-                        TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.muted,
-                          ),
-                          child: Text(
-                            'Terms',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13 * scale,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),

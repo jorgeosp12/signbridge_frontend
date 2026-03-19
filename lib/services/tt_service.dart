@@ -1,17 +1,13 @@
 import 'dart:js' as js;
 
-/// Servicio de Text-to-Speech para Flutter Web.
-/// Usa la Web Speech API nativa del navegador — sin dependencias externas.
-/// El audio sale por el dispositivo de salida predeterminado del sistema,
-/// lo que permite enrutarlo a un cable virtual (VB-Cable) para Zoom/Meet.
+
 class TtsService {
-  static const double _defaultRate   = 0.75;
+  static const double _defaultRate   = 0.7;
   static const double _defaultPitch  = 1.0;
   static const double _defaultVolume = 1.0;
   static const String _defaultLang   = 'en-US';
 
   /// Sintetiza y reproduce [text] en voz alta.
-  /// Selecciona automáticamente la mejor voz disponible en el navegador.
   static void speak(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
@@ -88,16 +84,12 @@ class TtsService {
     return googleEnUs ?? googleEn ?? microsoftEnUs ?? microsoftEn ?? anyEnUs;
   }
 
-  /// Detiene la reproducción inmediatamente.
   static void stop() {
     js.context['speechSynthesis']?.callMethod('cancel');
   }
 
-  /// Verifica si el navegador soporta Web Speech API.
   static bool get isSupported => js.context['speechSynthesis'] != null;
 
-  /// Imprime en consola todas las voces disponibles en el navegador.
-  /// Llama esto una vez al iniciar la app para ver qué voces hay disponibles.
   static void listVoices() {
     final synth = js.context['speechSynthesis'];
     if (synth == null) {
