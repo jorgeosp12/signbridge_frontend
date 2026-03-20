@@ -51,9 +51,9 @@ class FeaturesSection extends StatelessWidget {
               alignment: WrapAlignment.center,
               children: [
                 _InfoChip(
-                  icon: Icons.more_horiz,
-                  title: '...',
-                  subtitle: 'Processing',
+                  icon: Icons.bolt_rounded,
+                  title: 'Real toime',
+                  subtitle: 'Response',
                   scale: scale,
                 ),
                 _InfoChip(

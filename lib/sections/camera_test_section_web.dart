@@ -648,24 +648,24 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
   String _friendlyPredictionError(Object error) {
     if (error is TimeoutException) {
-      return 'The server took too long to respond. Please try again.';
+      return 'The system took too long to respond. Please try again.';
     }
 
     if (error is ApiException) {
       if (error.statusCode == 401 || error.statusCode == 403) {
-        return 'The app could not authenticate with the server.';
+        return 'Unable to connect. The system is not available right now.';
       }
       if (error.statusCode == 422) {
         return 'The sign was too short or incomplete. Do it again.';
       }
       if (error.statusCode == 429) {
-        return 'There are many requests coming in one after the other. Please wait a few seconds.';
+        return 'The system is busy right now. Please wait a moment and try again.';
       }
       if (error.statusCode == 503) {
-        return 'The server is busy or starting up. Please try again shortly.';
+        return 'The system is busy or starting up. Please try again shortly.';
       }
       if (error.statusCode >= 500) {
-        return 'The service is currently unavailable. Please try again later.';
+        return 'The system is currently unavailable. Please try again later.';
       }
     }
 
@@ -797,7 +797,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _toggleCamera,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF3B82F6),
+                                backgroundColor: AppColors.primary,
                                 foregroundColor: AppColors.text,
                                 shape: RoundedRectangleBorder(
                                   borderRadius:
@@ -885,7 +885,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                           SizedBox(height: 8 * scale),
                           _StateLine(
                             isActive: analyzingActive,
-                            color: const Color(0xFF3B82F6),
+                            color: AppColors.primary,
                             text: 'Analyzing',
                             scale: scale,
                           ),
@@ -900,13 +900,13 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                           _StateLine(
                             isActive: backendActive,
                             color: const Color(0xFFF59E0B),
-                            text: 'Backend request',
+                            text: 'Processing',
                             scale: scale,
                           ),
                           SizedBox(height: 10 * scale),
                           if (_lastPredictionLabel != null)
                             Text(
-                              'Last sign: $_lastPredictionLabel (${((_lastPredictionConfidence ?? 0) * 100).toStringAsFixed(1)}%)',
+                              'Last sign: $_lastPredictionLabel',
                               style: GoogleFonts.inter(
                                 color: AppColors.text,
                                 fontSize: 12 * scale,
@@ -915,21 +915,11 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                             ),
                           if (_lastLatencyMs != null)
                             Text(
-                              'Latency: $_lastLatencyMs ms',
+                              'Time: $_lastLatencyMs ms',
                               style: GoogleFonts.inter(
                                 color: AppColors.muted,
                                 fontSize: 11 * scale,
                               ),
-                            ),
-                          if (_lastTopK.isNotEmpty)
-                            Text(
-                              'Top-K: ${_lastTopK.map((item) => '${item.label} ${(item.confidence * 100).toStringAsFixed(1)}%').join(' | ')}',
-                              style: GoogleFonts.inter(
-                                color: AppColors.muted,
-                                fontSize: 11 * scale,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           if (_lastTopK.length > 1 &&
                               _lastEditableWordIndex != null &&
@@ -951,10 +941,10 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Choose result for latest sign',
+                                        'Not quite right? Choose what you meant',
                                         style: GoogleFonts.inter(
                                           color: AppColors.text,
-                                          fontSize: 11 * scale,
+                                          fontSize: 12 * scale,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -982,7 +972,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                                             backgroundColor:
                                                 const Color(0xFF0F172A),
                                             selectedColor:
-                                                const Color(0xFF1D4ED8),
+                                                AppColors.success,
                                             side: BorderSide(
                                               color: Colors.white.withOpacity(
                                                   isSelected ? 0.35 : 0.18),

@@ -1,7 +1,7 @@
 class RuntimeConfig {
   static const apiBaseUrl = String.fromEnvironment(
     'SIGNBRIDGE_API_URL',
-    defaultValue: 'http://127.0.0.1:8000',
+    defaultValue: 'http://localhost:8000',
   );
 
   static const apiKey = String.fromEnvironment(
