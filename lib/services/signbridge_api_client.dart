@@ -211,7 +211,11 @@ class SignBridgeApiClient {
     );
   }
 
-  Future<String> processSentence(String words) async {
+  Future<String> processSentence(
+    String words, {
+    int? maxAttempts,
+    Duration requestTimeout = const Duration(seconds: 8),
+  }) async {
     final normalized = words.trim();
     if (normalized.isEmpty) {
       throw const ApiException(
@@ -219,12 +223,16 @@ class SignBridgeApiClient {
         message: 'No words provided to process.',
       );
     }
+    final attempts = maxAttempts ?? maxRetries;
+    if (attempts < 1) {
+      throw ArgumentError.value(attempts, 'maxAttempts', 'Must be >= 1');
+    }
 
     final uri =
         Uri.parse('${baseUrl.replaceAll(RegExp(r'/$'), '')}/process/sentence');
     final payload = jsonEncode(<String, dynamic>{'words': normalized});
 
-    for (var attempt = 1; attempt <= maxRetries; attempt++) {
+    for (var attempt = 1; attempt <= attempts; attempt++) {
       final response = await _httpClient
           .post(
             uri,
@@ -234,7 +242,7 @@ class SignBridgeApiClient {
             },
             body: payload,
           )
-          .timeout(const Duration(seconds: 20));
+          .timeout(requestTimeout);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -250,10 +258,14 @@ class SignBridgeApiClient {
 
       final isRetryable =
           response.statusCode == 429 || response.statusCode == 503;
-      if (isRetryable && attempt < maxRetries) {
-        final retryAfter =
-            int.tryParse(response.headers['retry-after'] ?? '') ?? 1;
-        await Future<void>.delayed(Duration(seconds: retryAfter));
+      if (isRetryable && attempt < attempts) {
+        final retryAfter = int.tryParse(response.headers['retry-after'] ?? '');
+        if (retryAfter != null && retryAfter > 0) {
+          final cappedSeconds = retryAfter > 3 ? 3 : retryAfter;
+          await Future<void>.delayed(Duration(seconds: cappedSeconds));
+        } else {
+          await Future<void>.delayed(Duration(milliseconds: attempt * 300));
+        }
         continue;
       }
 

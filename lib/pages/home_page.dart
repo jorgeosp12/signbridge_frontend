@@ -22,16 +22,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _scroll = ScrollController();
 
-  final _homeKey     = GlobalKey();
+  final _homeKey = GlobalKey();
   final _featuresKey = GlobalKey();
   final _tutorialKey = GlobalKey();
-  final _demoKey     = GlobalKey();
+  final _demoKey = GlobalKey();
 
   String _selected = 'Home';
 
-  bool _engineOn      = false;
+  bool _engineOn = false;
   bool _engineStarting = false;
   late final SignBridgeApiClient _apiClient;
+  bool _backendPrimed = false;
+  Future<void>? _backendWarmupFuture;
 
   bool get _systemOnline => _engineOn;
 
@@ -40,12 +42,13 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _apiClient = SignBridgeApiClient(
       baseUrl: RuntimeConfig.apiBaseUrl,
-      apiKey:  RuntimeConfig.apiKey,
+      apiKey: RuntimeConfig.apiKey,
     );
     _scroll.addListener(_updateSelectedSectionFromScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateSelectedSectionFromScroll();
     });
+    _startBackendWarmup();
   }
 
   @override
@@ -71,12 +74,12 @@ class _HomePageState extends State<HomePage> {
     if (!_scroll.hasClients || !mounted) return;
 
     const activationOffset = 140.0;
-    final currentOffset    = _scroll.offset + activationOffset;
+    final currentOffset = _scroll.offset + activationOffset;
     final sections = <({String label, GlobalKey key})>[
-      (label: 'Home',     key: _homeKey),
+      (label: 'Home', key: _homeKey),
       (label: 'Features', key: _featuresKey),
       (label: 'Tutorial', key: _tutorialKey),
-      (label: 'Demo',     key: _demoKey),
+      (label: 'Demo', key: _demoKey),
     ];
 
     var activeLabel = _selected;
@@ -103,7 +106,7 @@ class _HomePageState extends State<HomePage> {
     if (renderObject == null || !renderObject.attached) return null;
 
     final viewport = RenderAbstractViewport.of(renderObject);
-    final reveal   = viewport.getOffsetToReveal(renderObject, 0).offset;
+    final reveal = viewport.getOffsetToReveal(renderObject, 0).offset;
     if (!_scroll.hasClients) return reveal;
 
     final maxExtent = _scroll.position.maxScrollExtent;
@@ -130,7 +133,14 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
-      await _waitForBackendReady();
+      _startBackendWarmup();
+      if (_backendWarmupFuture != null) {
+        await _backendWarmupFuture;
+      }
+      if (!_backendPrimed) {
+        await _waitForBackendReady();
+        _backendPrimed = true;
+      }
 
       if (!mounted) return;
 
@@ -139,6 +149,8 @@ class _HomePageState extends State<HomePage> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _engineOn = false);
+      _backendPrimed = false;
+      _startBackendWarmup();
       debugPrint('Engine start error: $error');
       _showEngineMessage(_friendlyEngineError(error), isError: true);
     } finally {
@@ -146,15 +158,36 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _waitForBackendReady() async {
-    final startedAt   = DateTime.now();
-    const maxWarmupTime = Duration(seconds: 75);
+  void _startBackendWarmup() {
+    if (_backendPrimed || _backendWarmupFuture != null) {
+      return;
+    }
+
+    _backendWarmupFuture = _waitForBackendReady(
+      maxWarmupTime: const Duration(seconds: 60),
+      requestTimeout: const Duration(seconds: 8),
+      pollInterval: const Duration(seconds: 1),
+    ).then((_) {
+      _backendPrimed = true;
+    }).catchError((Object error) {
+      debugPrint('Background backend warm-up incomplete: $error');
+    }).whenComplete(() {
+      _backendWarmupFuture = null;
+    });
+  }
+
+  Future<void> _waitForBackendReady({
+    Duration maxWarmupTime = const Duration(seconds: 75),
+    Duration requestTimeout = const Duration(seconds: 8),
+    Duration pollInterval = const Duration(seconds: 1),
+  }) async {
+    final startedAt = DateTime.now();
 
     while (DateTime.now().difference(startedAt) < maxWarmupTime) {
       try {
         final health = await _apiClient.healthCheck(
           maxAttempts: 1,
-          requestTimeout: const Duration(seconds: 15),
+          requestTimeout: requestTimeout,
         );
         if (health.isReady) return;
       } on TimeoutException {
@@ -166,16 +199,16 @@ class _HomePageState extends State<HomePage> {
         if (!isTransient) rethrow;
       }
 
-      await Future<void>.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(pollInterval);
     }
 
     throw TimeoutException('Backend warm-up timed out.');
   }
 
   void _showEngineMessage(String message, {required bool isError}) {
-    final bgColor   = isError
-        ? const Color(0xFF7F1D1D)   // rojo oscuro
-        : const Color(0xFF14532D);  // verde oscuro
+    final bgColor = isError
+        ? const Color(0xFF7F1D1D) // rojo oscuro
+        : const Color(0xFF14532D); // verde oscuro
 
     final icon = isError
         ? const Icon(Icons.error_outline, color: Colors.white, size: 20)
@@ -214,7 +247,7 @@ class _HomePageState extends State<HomePage> {
 
   String _friendlyEngineError(Object error) {
     if (error is TimeoutException) {
-      return 'The system took too long to respond. Please try again.';
+      return 'The AI server is still waking up. Please try again in a few seconds.';
     }
     if (error is ApiException) {
       if (error.statusCode == 403) {
@@ -241,10 +274,18 @@ class _HomePageState extends State<HomePage> {
             systemOnline: _systemOnline,
             onSelect: (label) {
               switch (label) {
-                case 'Home':     _scrollTo(_homeKey,     'Home');     break;
-                case 'Features': _scrollTo(_featuresKey, 'Features'); break;
-                case 'Tutorial': _scrollTo(_tutorialKey, 'Tutorial'); break;
-                case 'Demo':     _scrollTo(_demoKey,     'Demo');     break;
+                case 'Home':
+                  _scrollTo(_homeKey, 'Home');
+                  break;
+                case 'Features':
+                  _scrollTo(_featuresKey, 'Features');
+                  break;
+                case 'Tutorial':
+                  _scrollTo(_tutorialKey, 'Tutorial');
+                  break;
+                case 'Demo':
+                  _scrollTo(_demoKey, 'Demo');
+                  break;
               }
             },
           ),
@@ -255,7 +296,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Container(key: _homeKey),
                   HeroSection(
-                    engineOn:   _engineOn,
+                    engineOn: _engineOn,
                     engineBusy: _engineStarting,
                     onToggleEngine: () => unawaited(_toggleEngine()),
                   ),
