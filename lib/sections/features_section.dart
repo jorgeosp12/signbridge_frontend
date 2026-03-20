@@ -52,7 +52,7 @@ class FeaturesSection extends StatelessWidget {
               children: [
                 _InfoChip(
                   icon: Icons.bolt_rounded,
-                  title: 'Real toime',
+                  title: 'Real time',
                   subtitle: 'Response',
                   scale: scale,
                 ),

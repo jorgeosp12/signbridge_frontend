@@ -981,7 +981,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                                             backgroundColor:
                                                 const Color(0xFF0F172A),
                                             selectedColor:
-                                                AppColors.success,
+                                                AppColors.primary,
                                             side: BorderSide(
                                               color: Colors.white.withOpacity(
                                                   isSelected ? 0.35 : 0.18),
