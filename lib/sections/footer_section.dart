@@ -65,8 +65,8 @@ class FooterSection extends StatelessWidget {
                         ),
                         SizedBox(height: 16 * scale),
                         Text(
-                          'Tecnologia de traduccion de senas a voz '
-                          'disenada para entornos digitales inclusivos.\n'
+                          'Tecnologia de traduccion de se\u00f1as a voz '
+                          'dise\u00f1ada para entornos digitales inclusivos.\n'
                           'Dirigida a personas con dificultades del habla.',
                           style: GoogleFonts.inter(
                             color: AppColors.text,

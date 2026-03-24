@@ -48,6 +48,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   static const _frameInterval = Duration(milliseconds: 33);
   static const _sentenceProcessingTimeout = Duration(seconds: 4);
   static const _minWordsForGrammarPass = 2;
+  static const _videoStartTimeout = Duration(seconds: 2);
+  static const _videoAdvanceCheck = Duration(milliseconds: 450);
 
   late final String _viewType;
   late final html.VideoElement _video;
@@ -185,6 +187,44 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     _video.load();
   }
 
+  Future<html.MediaStream> _requestCameraStream(
+    html.MediaDevices mediaDevices,
+  ) {
+    return mediaDevices.getUserMedia(<String, Object>{
+      'video': <String, Object>{'facingMode': 'user'},
+      'audio': false,
+    });
+  }
+
+  Future<void> _attachStreamAndPlay(html.MediaStream stream) async {
+    _stream = stream;
+    _video.srcObject = stream;
+
+    if (!(_video.readyState >= 2 &&
+        _video.videoWidth > 0 &&
+        _video.videoHeight > 0)) {
+      try {
+        await _video.onLoadedMetadata.first.timeout(_videoStartTimeout);
+      } catch (_) {
+        // Continue and let play() decide.
+      }
+    }
+
+    try {
+      await _video.play();
+    } catch (_) {
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      await _video.play();
+    }
+
+    final startTime = _video.currentTime;
+    await Future<void>.delayed(_videoAdvanceCheck);
+    final endTime = _video.currentTime;
+    if (endTime <= startTime + 0.01) {
+      throw StateError('Camera stream is frozen.');
+    }
+  }
+
   Future<void> _turnOnCamera() async {
     if (!widget.engineOn) {
       setState(() {
@@ -208,25 +248,22 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
     try {
       _stopStream();
-      await _initializeMediaPipe();
+      await _disposeMediaPipeSession();
       final mediaDevices = html.window.navigator.mediaDevices;
       if (mediaDevices == null) {
         throw StateError('Media devices are not available in this browser.');
       }
 
-      final stream = await mediaDevices.getUserMedia(<String, Object>{
-        'video': <String, Object>{'facingMode': 'user'},
-        'audio': false,
-      });
-
-      _stream = stream;
-      _video.srcObject = stream;
       try {
-        await _video.play();
+        final stream = await _requestCameraStream(mediaDevices);
+        await _attachStreamAndPlay(stream);
       } catch (_) {
-        await Future<void>.delayed(const Duration(milliseconds: 120));
-        await _video.play();
+        _stopStream();
+        final retryStream = await _requestCameraStream(mediaDevices);
+        await _attachStreamAndPlay(retryStream);
       }
+
+      await _initializeMediaPipe();
 
       _frameTimer?.cancel();
       _frameTimer = Timer.periodic(_frameInterval, (_) {
@@ -251,17 +288,17 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
       debugPrint('Camera initialization failed: $error');
       await _disposeMediaPipeSession();
+      _stopStream();
       setState(() {
         _isLoading = false;
         _cameraOn = false;
-        _stopStream();
         _errorText = _friendlyCameraError(error);
         _statusText = 'La camara esta apagada.';
       });
     }
   }
 
-  Future<void> _turnOffCamera({bool disposeSession = false}) async {
+  Future<void> _turnOffCamera({bool disposeSession = true}) async {
     setState(() {
       _isLoading = true;
       _statusText = 'Apagando camara';
@@ -379,7 +416,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     if (_captureState == _CaptureState.idle && extraction.handsVisible) {
       setState(() {
         _captureState = _CaptureState.signing;
-        _statusText = 'Grabando sena';
+        _statusText = 'Grabando Se\u00f1a';
         _signFrames
           ..clear()
           ..add(extraction.features);
@@ -403,7 +440,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         setState(() {
           _captureState = _CaptureState.predicting;
           _isPredicting = true;
-          _statusText = 'Enviando sena al backend';
+          _statusText = 'Enviando Se\u00f1a al backend';
         });
 
         unawaited(_predictCurrentSign(framesForPrediction));
@@ -416,7 +453,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       if (mounted) {
         setState(() {
           _statusText =
-              'Sena omitida: demasiado corta (${frames.length} frames).';
+              'Se\u00f1a omitida: demasiado corta (${frames.length} frames).';
         });
       }
       _resetAfterPrediction();
@@ -441,7 +478,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         _lastLatencyMs = stopwatch.elapsedMilliseconds;
         _sentenceWords.add(prediction.label);
         _lastEditableWordIndex = _sentenceWords.length - 1;
-        _statusText = 'Sena reconocida. Continua para construir la oracion.';
+        _statusText =
+            'Se\u00f1a reconocida. Continua para construir la oracion.';
         _errorText = null;
       });
     } on ApiException catch (error) {
@@ -635,7 +673,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       _sentenceWords[_lastEditableWordIndex!] = label;
       _lastPredictionLabel = label;
       _lastPredictionConfidence = selected.confidence;
-      _statusText = 'La opcion elegida se actualizo para la ultima sena.';
+      _statusText = 'La opcion elegida se actualizo para la ultima se\u00f1a.';
     });
   }
 
@@ -667,7 +705,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   }
 
   String _friendlyFrameError(Object error) {
-    return 'No se pudo analizar esta sena. Reinicia la camara e intentalo de nuevo.';
+    return 'No se pudo analizar esta se\u00f1a. Reinicia la camara e intentalo de nuevo.';
   }
 
   String _friendlyPredictionError(Object error) {
@@ -680,7 +718,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         return 'No fue posible conectar. El sistema no esta disponible ahora.';
       }
       if (error.statusCode == 422) {
-        return 'La sena fue muy corta o incompleta. Hazla de nuevo.';
+        return 'La se\u00f1a fue muy corta o incompleta. Hazla de nuevo.';
       }
       if (error.statusCode == 429) {
         return 'El sistema esta ocupado. Espera un momento e intentalo de nuevo.';
@@ -693,7 +731,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       }
     }
 
-    return 'La sena no se pudo traducir en este momento.';
+    return 'La se\u00f1a no se pudo traducir en este momento.';
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -754,7 +792,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                 ),
                 SizedBox(height: 12 * scale),
                 Text(
-                  'Captura en vivo, extraccion de keypoints y prediccion por sena.',
+                  'Captura en vivo, extraccion de keypoints y prediccion por Se\u00f1a.',
                   style: GoogleFonts.inter(
                     color: AppColors.muted,
                     fontWeight: FontWeight.w400,
@@ -917,7 +955,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                           _StateLine(
                             isActive: signDetectedActive,
                             color: const Color(0xFF10B981),
-                            text: 'Sena detectada',
+                            text: 'Se\u00f1a detectada',
                             scale: scale,
                           ),
                           SizedBox(height: 8 * scale),
@@ -930,7 +968,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                           SizedBox(height: 10 * scale),
                           if (_lastPredictionLabel != null)
                             Text(
-                              'Ultima sena: $_lastPredictionLabel',
+                              'Ultima se\u00f1a: $_lastPredictionLabel',
                               style: GoogleFonts.inter(
                                 color: AppColors.text,
                                 fontSize: 12 * scale,
@@ -1081,7 +1119,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                       SizedBox(height: 8 * scale),
                       Text(
                         _sentenceWords.isEmpty
-                            ? 'Esperando senas'
+                            ? 'Esperando se\u00f1as'
                             : _sentenceWords.join(' '),
                         style: GoogleFonts.inter(
                           color: _sentenceWords.isEmpty

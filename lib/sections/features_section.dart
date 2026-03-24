@@ -36,7 +36,7 @@ class FeaturesSection extends StatelessWidget {
             ),
             SizedBox(height: 3 * scale),
             Text(
-              'Disenado para mejorar la comunicacion inclusiva en Windows',
+              'Dise\u00f1ado para mejorar la comunicacion inclusiva en Windows',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: AppColors.text,
@@ -81,7 +81,7 @@ class FeaturesSection extends StatelessWidget {
                       icon: Icons.mic_none_rounded,
                       title: 'Traduccion',
                       description:
-                          'Convierte lengua de senas en voz usando inteligencia artificial.',
+                          'Convierte lengua de se\u00f1as en voz usando inteligencia artificial.',
                       scale: scale,
                     ),
                     _FeatureCard(

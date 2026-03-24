@@ -92,7 +92,7 @@ class HeroSection extends StatelessWidget {
                 ),
                 SizedBox(height: 18 * scale),
                 Text(
-                  'Traduccion de Lengua de Senas Americana (ASL) a voz.\n'
+                  'Traduccion de Lengua de Se\u00f1as Americana (ASL) a voz.\n'
                   'Compatible de forma nativa con Zoom, Teams y Google Meet.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
