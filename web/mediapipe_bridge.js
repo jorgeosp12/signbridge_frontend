@@ -3,6 +3,7 @@
   const KEYPOINT_DIM = 429;
   const FEATURE_DIM = 858;
   const EMPTY_FEATURES = new Array(FEATURE_DIM).fill(0);
+  const SEND_TIMEOUT_MS = 800;
 
   function pushLandmarks(target, landmarks, expectedCount, subset) {
     if (!landmarks) {
@@ -121,6 +122,15 @@
       }
     });
 
+    const sendWithTimeout = (sessionRef) => {
+      return Promise.race([
+        sessionRef.holistic.send({ image: sessionRef.videoElement }),
+        new Promise((_, reject) => {
+          window.setTimeout(() => reject(new Error("Holistic send timeout")), SEND_TIMEOUT_MS);
+        }),
+      ]);
+    };
+
     const processLoop = async () => {
       if (session.disposed) {
         return;
@@ -134,7 +144,7 @@
       ) {
         session.busy = true;
         try {
-          await session.holistic.send({ image: session.videoElement });
+          await sendWithTimeout(session);
         } catch (_) {
           session.latestExtraction = {
             features: EMPTY_FEATURES.slice(),

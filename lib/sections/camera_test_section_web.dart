@@ -50,7 +50,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   static const _minWordsForGrammarPass = 2;
   static const _videoStartTimeout = Duration(seconds: 2);
   static const _videoAdvanceCheck = Duration(milliseconds: 450);
-  static const _cameraReleaseDelay = Duration(milliseconds: 180);
+  static const _cameraReleaseDelay = Duration(milliseconds: 220);
 
   late final String _viewType;
   late html.VideoElement _video;
@@ -258,6 +258,9 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   }
 
   Future<void> _turnOnCamera() async {
+    if (_isLoading) {
+      return;
+    }
     if (!widget.engineOn) {
       setState(() {
         _errorText = 'Primero enciende el motor de IA.';
@@ -280,8 +283,6 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
     try {
       _stopStream();
-      await _disposeMediaPipeSession();
-      _recreateVideoElement();
       await Future<void>.delayed(_cameraReleaseDelay);
       final mediaDevices = html.window.navigator.mediaDevices;
       if (mediaDevices == null) {
@@ -293,13 +294,14 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         await _attachStreamAndPlay(stream);
       } catch (_) {
         _stopStream();
-        _recreateVideoElement();
         await Future<void>.delayed(_cameraReleaseDelay);
         final retryStream = await _requestCameraStream(mediaDevices);
         await _attachStreamAndPlay(retryStream);
       }
 
-      await _initializeMediaPipe();
+      if (!_mediaPipeReady) {
+        await _initializeMediaPipe();
+      }
 
       _frameTimer?.cancel();
       _frameTimer = Timer.periodic(_frameInterval, (_) {
@@ -334,7 +336,10 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     }
   }
 
-  Future<void> _turnOffCamera({bool disposeSession = true}) async {
+  Future<void> _turnOffCamera({bool disposeSession = false}) async {
+    if (_isLoading) {
+      return;
+    }
     setState(() {
       _isLoading = true;
       _cameraOn = false;
@@ -347,9 +352,9 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     _stopStream();
     if (disposeSession) {
       await _disposeMediaPipeSession();
+      _recreateVideoElement();
     }
     await Future<void>.delayed(_cameraReleaseDelay);
-    _recreateVideoElement();
 
     if (!mounted) {
       return;
@@ -372,8 +377,11 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   }
 
   Future<void> _toggleCamera() async {
+    if (_isLoading) {
+      return;
+    }
     if (_cameraOn) {
-      await _turnOffCamera();
+      await _turnOffCamera(disposeSession: false);
     } else {
       await _turnOnCamera();
     }
@@ -1185,38 +1193,39 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
 
   Widget _buildPreview() {
     final scale = responsiveScale(context, min: 0.9, max: 1.3);
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
-      );
-    }
-
-    if (!_cameraOn) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.videocam_outlined,
-              color: AppColors.text.withOpacity(0.3),
-              size: 48 * scale,
-            ),
-            SizedBox(height: 12 * scale),
-            Text(
-              'Camara en espera',
-              style: GoogleFonts.inter(
-                color: AppColors.text.withOpacity(0.4),
-                fontSize: 16 * scale,
-              ),
-            ),
-          ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        HtmlElementView(
+          key: ValueKey('camera-preview-$_previewVersion'),
+          viewType: _viewType,
         ),
-      );
-    }
-
-    return HtmlElementView(
-      key: ValueKey('camera-preview-$_previewVersion'),
-      viewType: _viewType,
+        if (!_cameraOn || _isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.62),
+            alignment: Alignment.center,
+            child: _isLoading
+                ? const CircularProgressIndicator(color: Color(0xFF3B82F6))
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.videocam_outlined,
+                        color: AppColors.text.withOpacity(0.3),
+                        size: 48 * scale,
+                      ),
+                      SizedBox(height: 12 * scale),
+                      Text(
+                        'Camara en espera',
+                        style: GoogleFonts.inter(
+                          color: AppColors.text.withOpacity(0.4),
+                          fontSize: 16 * scale,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+      ],
     );
   }
 }
