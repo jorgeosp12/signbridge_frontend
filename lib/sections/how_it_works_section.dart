@@ -27,7 +27,7 @@ class HowItWorksSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'See how it works',
+              'Mira como funciona',
               textAlign: TextAlign.center,
               style: GoogleFonts.lalezar(
                 fontSize: 48 * scale,
@@ -37,7 +37,7 @@ class HowItWorksSection extends StatelessWidget {
               ),
             ),
             Text(
-              'Explanation in Colombian Sign Language (LSC)',
+              'Explicacion en Lengua de Senas Colombiana (LSC)',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: AppColors.muted,

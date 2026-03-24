@@ -59,7 +59,7 @@ class HeroSection extends StatelessWidget {
                     border: Border.all(color: Colors.white.withOpacity(0.08)),
                   ),
                   child: Text(
-                    'THESIS PROJECT 2026',
+                    'PROYECTO DE GRADO 2026',
                     style: GoogleFonts.inter(
                       fontSize: 13 * scale,
                       fontWeight: FontWeight.w600,
@@ -79,7 +79,7 @@ class HeroSection extends StatelessWidget {
                     ],
                   ).createShader(bounds),
                   child: Text(
-                    'Your voice in meetings,\npowered by your hands.',
+                    'Tu voz en reuniones,\nimpulsada por tus manos.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.lalezar(
                       fontSize: 76 * scale,
@@ -92,8 +92,8 @@ class HeroSection extends StatelessWidget {
                 ),
                 SizedBox(height: 18 * scale),
                 Text(
-                  'American Sign Language (ASL) to speech translation.\n'
-                  'Natively compatible with Zoom, Teams, and Google Meet.',
+                  'Traduccion de Lengua de Senas Americana (ASL) a voz.\n'
+                  'Compatible de forma nativa con Zoom, Teams y Google Meet.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 18 * scale,
@@ -132,10 +132,10 @@ class HeroSection extends StatelessWidget {
                       ),
                       label: Text(
                         engineBusy
-                            ? 'Starting...'
+                            ? 'Iniciando...'
                             : engineOn
-                                ? 'Stop AI engine'
-                                : 'Start AI engine',
+                                ? 'Apagar motor de IA'
+                                : 'Encender motor de IA',
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w400,
                           fontSize: 14 * scale,

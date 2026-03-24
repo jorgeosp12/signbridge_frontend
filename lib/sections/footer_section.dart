@@ -65,9 +65,9 @@ class FooterSection extends StatelessWidget {
                         ),
                         SizedBox(height: 16 * scale),
                         Text(
-                          'Sign-to-speech translation technology '
-                          'designed for inclusive digital environments.\n'
-                          'Aimed at people with speech difficulties.',
+                          'Tecnologia de traduccion de senas a voz '
+                          'disenada para entornos digitales inclusivos.\n'
+                          'Dirigida a personas con dificultades del habla.',
                           style: GoogleFonts.inter(
                             color: AppColors.text,
                             fontWeight: FontWeight.w400,
@@ -82,7 +82,7 @@ class FooterSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Authors & Contact',
+                          'Autores y contacto',
                           style: GoogleFonts.inter(
                             fontSize: 16 * scale,
                             fontWeight: FontWeight.w600,
@@ -136,7 +136,7 @@ class FooterSection extends StatelessWidget {
                   runSpacing: 16 * scale,
                   children: [
                     Text(
-                      '© 2026 SignBridge. Thesis Project. All rights reserved.',
+                      '(c) 2026 SignBridge. Proyecto de grado. Todos los derechos reservados.',
                       style: GoogleFonts.inter(
                         color: AppColors.muted.withOpacity(0.7),
                         fontWeight: FontWeight.w500,

@@ -10,14 +10,15 @@ class StatusPill extends StatelessWidget {
   const StatusPill({
     super.key,
     required this.isOnline,
-    this.onlineText = 'System Online',
-    this.offlineText = 'System Offline',
+    this.onlineText = 'Sistema activo',
+    this.offlineText = 'Sistema inactivo',
     this.scale = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    final dotColor = isOnline ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+    final dotColor =
+        isOnline ? const Color(0xFF10B981) : const Color(0xFFEF4444);
     final text = isOnline ? onlineText : offlineText;
 
     return Container(

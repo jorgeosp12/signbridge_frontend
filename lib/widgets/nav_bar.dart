@@ -99,8 +99,8 @@ class NavBar extends StatelessWidget {
               if (!isNarrow)
                 Row(
                   children: [
-                    navItem('Home'),
-                    navItem('Features'),
+                    navItem('Inicio'),
+                    navItem('Funciones'),
                     navItem('Tutorial'),
                     navItem('Demo'),
                   ],

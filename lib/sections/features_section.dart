@@ -27,7 +27,7 @@ class FeaturesSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Principal features',
+              'Funciones principales',
               style: GoogleFonts.lalezar(
                 fontSize: 45 * scale,
                 fontWeight: FontWeight.w600,
@@ -36,7 +36,7 @@ class FeaturesSection extends StatelessWidget {
             ),
             SizedBox(height: 3 * scale),
             Text(
-              'Designed to improve inclusive communication in Windows',
+              'Disenado para mejorar la comunicacion inclusiva en Windows',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: AppColors.text,
@@ -52,20 +52,20 @@ class FeaturesSection extends StatelessWidget {
               children: [
                 _InfoChip(
                   icon: Icons.bolt_rounded,
-                  title: 'Real time',
-                  subtitle: 'Response',
+                  title: 'Tiempo real',
+                  subtitle: 'Respuesta',
                   scale: scale,
                 ),
                 _InfoChip(
                   icon: Icons.shield_outlined,
                   title: '100%',
-                  subtitle: 'Privacy',
+                  subtitle: 'Privacidad',
                   scale: scale,
                 ),
                 _InfoChip(
                   icon: Icons.desktop_windows_outlined,
                   title: 'Windows',
-                  subtitle: 'Platform',
+                  subtitle: 'Plataforma',
                   scale: scale,
                 ),
               ],
@@ -79,23 +79,23 @@ class FeaturesSection extends StatelessWidget {
                   final cards = [
                     _FeatureCard(
                       icon: Icons.mic_none_rounded,
-                      title: 'Translation',
+                      title: 'Traduccion',
                       description:
-                          'Convert sign language to speech using artificial intelligence.',
+                          'Convierte lengua de senas en voz usando inteligencia artificial.',
                       scale: scale,
                     ),
                     _FeatureCard(
                       icon: Icons.video_call_outlined,
-                      title: 'Integration with video calls',
+                      title: 'Integracion con videollamadas',
                       description:
-                          'Compatible with Zoom, Meet, Teams via VB-Cable virtual cable.',
+                          'Compatible con Zoom, Meet y Teams mediante cable virtual VB-Cable.',
                       scale: scale,
                     ),
                     _FeatureCard(
                       icon: Icons.accessibility_new_rounded,
-                      title: 'Accessible and intuitive',
+                      title: 'Accesible e intuitivo',
                       description:
-                          'Inclusive and easy-to-use design, without many steps involved.',
+                          'Diseno inclusivo y facil de usar, sin pasos complejos.',
                       scale: scale,
                     ),
                   ];

@@ -17,7 +17,7 @@ class CameraTestSection extends StatelessWidget {
     final scale = responsiveScale(context, min: 0.9, max: 1.3);
     final maxWidth = responsiveMaxWidth(context, base: 900);
     final statusColor = engineOn ? AppColors.success : const Color(0xFFEF4444);
-    final statusText = engineOn ? 'AI engine online' : 'AI engine offline';
+    final statusText = engineOn ? 'Motor de IA activo' : 'Motor de IA inactivo';
 
     return Container(
       width: double.infinity,
@@ -38,7 +38,7 @@ class CameraTestSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Camera test',
+                  'Prueba de camara',
                   style: GoogleFonts.lalezar(
                     fontSize: 40 * scale,
                     color: AppColors.text,
@@ -47,7 +47,7 @@ class CameraTestSection extends StatelessWidget {
                 ),
                 SizedBox(height: 10 * scale),
                 Text(
-                  'This live sign capture module currently runs on Flutter Web.',
+                  'Este modulo de captura en vivo se ejecuta actualmente en Flutter Web.',
                   style: GoogleFonts.inter(
                     color: AppColors.muted,
                     fontSize: 15 * scale,
