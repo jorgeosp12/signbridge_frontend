@@ -50,9 +50,12 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   static const _minWordsForGrammarPass = 2;
   static const _videoStartTimeout = Duration(seconds: 2);
   static const _videoAdvanceCheck = Duration(milliseconds: 450);
+  static const _cameraReleaseDelay = Duration(milliseconds: 180);
 
   late final String _viewType;
-  late final html.VideoElement _video;
+  late html.VideoElement _video;
+  html.DivElement? _videoHost;
+  int _previewVersion = 0;
   final FocusNode _hotkeysFocusNode = FocusNode();
 
   final List<List<double>> _signFrames = <List<double>>[];
@@ -88,20 +91,19 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     super.initState();
 
     _viewType = 'signbridge-webcam-view-${_viewIdCounter++}';
-    _video = html.VideoElement()
-      ..autoplay = true
-      ..muted = true
-      ..controls = false
-      ..setAttribute('playsinline', 'true')
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.objectFit = 'cover'
-      ..style.border = 'none'
-      ..style.backgroundColor = 'black';
+    _video = _buildVideoElement();
 
     ui_web.platformViewRegistry.registerViewFactory(
       _viewType,
-      (int viewId) => _video,
+      (int viewId) {
+        _videoHost ??= html.DivElement()
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..style.backgroundColor = 'black'
+          ..style.overflow = 'hidden';
+        _attachVideoElement(_video);
+        return _videoHost!;
+      },
     );
 
     _apiClient = SignBridgeApiClient(
@@ -187,6 +189,35 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     _video.load();
   }
 
+  html.VideoElement _buildVideoElement() {
+    return html.VideoElement()
+      ..autoplay = true
+      ..muted = true
+      ..controls = false
+      ..setAttribute('playsinline', 'true')
+      ..style.width = '100%'
+      ..style.height = '100%'
+      ..style.objectFit = 'cover'
+      ..style.border = 'none'
+      ..style.backgroundColor = 'black';
+  }
+
+  void _attachVideoElement(html.VideoElement element) {
+    final host = _videoHost;
+    if (host == null) {
+      return;
+    }
+    host.children
+      ..clear()
+      ..add(element);
+  }
+
+  void _recreateVideoElement() {
+    _video = _buildVideoElement();
+    _previewVersion += 1;
+    _attachVideoElement(_video);
+  }
+
   Future<html.MediaStream> _requestCameraStream(
     html.MediaDevices mediaDevices,
   ) {
@@ -197,30 +228,31 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   }
 
   Future<void> _attachStreamAndPlay(html.MediaStream stream) async {
+    final video = _video;
     _stream = stream;
-    _video.srcObject = stream;
+    video.srcObject = stream;
 
-    if (!(_video.readyState >= 2 &&
-        _video.videoWidth > 0 &&
-        _video.videoHeight > 0)) {
+    if (!(video.readyState >= 2 &&
+        video.videoWidth > 0 &&
+        video.videoHeight > 0)) {
       try {
-        await _video.onLoadedMetadata.first.timeout(_videoStartTimeout);
+        await video.onLoadedMetadata.first.timeout(_videoStartTimeout);
       } catch (_) {
         // Continue and let play() decide.
       }
     }
 
     try {
-      await _video.play();
+      await video.play();
     } catch (_) {
       await Future<void>.delayed(const Duration(milliseconds: 120));
-      await _video.play();
+      await video.play();
     }
 
-    final startTime = _video.currentTime;
+    final startTime = video.currentTime;
     await Future<void>.delayed(_videoAdvanceCheck);
-    final endTime = _video.currentTime;
-    if (endTime <= startTime + 0.01) {
+    final endTime = video.currentTime;
+    if (video.paused || endTime <= startTime + 0.01) {
       throw StateError('Camera stream is frozen.');
     }
   }
@@ -249,6 +281,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     try {
       _stopStream();
       await _disposeMediaPipeSession();
+      _recreateVideoElement();
+      await Future<void>.delayed(_cameraReleaseDelay);
       final mediaDevices = html.window.navigator.mediaDevices;
       if (mediaDevices == null) {
         throw StateError('Media devices are not available in this browser.');
@@ -259,6 +293,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         await _attachStreamAndPlay(stream);
       } catch (_) {
         _stopStream();
+        _recreateVideoElement();
+        await Future<void>.delayed(_cameraReleaseDelay);
         final retryStream = await _requestCameraStream(mediaDevices);
         await _attachStreamAndPlay(retryStream);
       }
@@ -301,6 +337,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   Future<void> _turnOffCamera({bool disposeSession = true}) async {
     setState(() {
       _isLoading = true;
+      _cameraOn = false;
       _statusText = 'Apagando camara';
     });
 
@@ -311,6 +348,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     if (disposeSession) {
       await _disposeMediaPipeSession();
     }
+    await Future<void>.delayed(_cameraReleaseDelay);
+    _recreateVideoElement();
 
     if (!mounted) {
       return;
@@ -698,6 +737,10 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   }
 
   String _friendlyCameraError(Object error) {
+    final errorText = error.toString().toLowerCase();
+    if (errorText.contains('frozen')) {
+      return 'La camara se quedo congelada. Apagala y enciendela de nuevo.';
+    }
     if (error is TimeoutException) {
       return 'La camara tardo demasiado en iniciar. Intentalo de nuevo.';
     }
@@ -1171,7 +1214,10 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       );
     }
 
-    return HtmlElementView(viewType: _viewType);
+    return HtmlElementView(
+      key: ValueKey('camera-preview-$_previewVersion'),
+      viewType: _viewType,
+    );
   }
 }
 
