@@ -36,7 +36,7 @@ class FeaturesSection extends StatelessWidget {
             ),
             SizedBox(height: 3 * scale),
             Text(
-              'Dise\u00f1ado para mejorar la comunicacion inclusiva en Windows',
+              'Diseñado para mejorar la comunicación inclusiva en Windows',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: AppColors.text,
@@ -79,14 +79,14 @@ class FeaturesSection extends StatelessWidget {
                   final cards = [
                     _FeatureCard(
                       icon: Icons.mic_none_rounded,
-                      title: 'Traduccion',
+                      title: 'Traducción',
                       description:
-                          'Convierte lengua de se\u00f1as en voz usando inteligencia artificial.',
+                          'Convierte lengua de señas en voz usando inteligencia artificial.',
                       scale: scale,
                     ),
                     _FeatureCard(
                       icon: Icons.video_call_outlined,
-                      title: 'Integracion con videollamadas',
+                      title: 'Integración con videollamadas',
                       description:
                           'Compatible con Zoom, Meet y Teams mediante cable virtual VB-Cable.',
                       scale: scale,
@@ -95,7 +95,7 @@ class FeaturesSection extends StatelessWidget {
                       icon: Icons.accessibility_new_rounded,
                       title: 'Accesible e intuitivo',
                       description:
-                          'Diseno inclusivo y facil de usar, sin pasos complejos.',
+                          'Diseño inclusivo y fácil de usar, sin pasos complejos.',
                       scale: scale,
                     ),
                   ];
