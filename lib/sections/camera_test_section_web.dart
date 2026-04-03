@@ -605,6 +605,30 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         }
       }
 
+      final outputWords = sentenceForOutput
+          .split(RegExp(r'\s+'))
+          .map((word) => word.trim())
+          .where((word) => word.isNotEmpty)
+          .toList(growable: false);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _sentenceWords
+          ..clear()
+          ..addAll(outputWords);
+        _lastTopK = const <TopKPrediction>[];
+        _selectedTopChoiceLabel = null;
+        _lastEditableWordIndex = null;
+        _statusText = usedGrammarEndpoint
+            ? 'Oracion corregida. Reproduciendo voz.'
+            : 'Oracion confirmada. Reproduciendo voz.';
+      });
+
+      await Future<void>.delayed(Duration.zero);
+
       if (RuntimeConfig.enableBrowserTts) {
         final didSpeak = TtsService.speak(
           sentenceForOutput,
@@ -623,10 +647,6 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       }
 
       setState(() {
-        _sentenceWords.clear();
-        _lastTopK = const <TopKPrediction>[];
-        _selectedTopChoiceLabel = null;
-        _lastEditableWordIndex = null;
         _statusText = usedGrammarEndpoint
             ? 'Oracion corregida y confirmada.'
             : 'Oracion confirmada.';
