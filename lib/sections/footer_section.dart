@@ -65,8 +65,8 @@ class FooterSection extends StatelessWidget {
                         ),
                         SizedBox(height: 16 * scale),
                         Text(
-                          'Tecnologia de traduccion de se\u00f1as a voz '
-                          'dise\u00f1ada para entornos digitales inclusivos.\n'
+                          'Tecnología de traducción de señas a voz '
+                          'diseñada para entornos digitales inclusivos.\n'
                           'Dirigida a personas con dificultades del habla.',
                           style: GoogleFonts.inter(
                             color: AppColors.text,
@@ -92,13 +92,13 @@ class FooterSection extends StatelessWidget {
                         ),
                         SizedBox(height: 20 * scale),
                         _ContactInfo(
-                          name: 'Gissel Vanessa Quitian Rojas',
+                          name: 'Gissel Vanessa Quitián Rojas',
                           email: 'gvquitianr@correo.usbcali.edu.co',
                           scale: scale,
                         ),
                         SizedBox(height: 16 * scale),
                         _ContactInfo(
-                          name: 'Jorge Eduardo Ospina Sanchez',
+                          name: 'Jorge Eduardo Ospina Sánchez',
                           email: 'jeospinas@correo.usbcali.edu.co',
                           scale: scale,
                         ),
@@ -136,7 +136,7 @@ class FooterSection extends StatelessWidget {
                   runSpacing: 16 * scale,
                   children: [
                     Text(
-                      '(c) 2026 SignBridge. Proyecto de grado. Todos los derechos reservados.',
+                      '© 2026 SignBridge. Proyecto de grado.',
                       style: GoogleFonts.inter(
                         color: AppColors.muted.withOpacity(0.7),
                         fontWeight: FontWeight.w500,

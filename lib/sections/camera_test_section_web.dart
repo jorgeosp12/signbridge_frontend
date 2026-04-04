@@ -79,7 +79,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   bool _mediaPipeReady = false;
 
   String? _errorText;
-  String _statusText = 'Presiona "Encender camara" para iniciar.';
+  String _statusText = 'Presiona "Encender cámara" para iniciar.';
   String? _lastPredictionLabel;
   double? _lastPredictionConfidence;
   List<TopKPrediction> _lastTopK = const <TopKPrediction>[];
@@ -279,7 +279,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     setState(() {
       _isLoading = true;
       _errorText = null;
-      _statusText = 'Iniciando camara y MediaPipe';
+      _statusText = 'Iniciando cámara y MediaPipe';
     });
 
     try {
@@ -316,7 +316,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       setState(() {
         _cameraOn = true;
         _isLoading = false;
-        _statusText = 'Camara activa. Esperando manos';
+        _statusText = 'Cámara activa. Esperando manos';
       });
 
       _hotkeysFocusNode.requestFocus();
@@ -332,7 +332,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         _isLoading = false;
         _cameraOn = false;
         _errorText = _friendlyCameraError(error);
-        _statusText = 'La camara esta apagada.';
+        _statusText = 'La cámara esta apagada.';
       });
     }
   }
@@ -344,7 +344,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     setState(() {
       _isLoading = true;
       _cameraOn = false;
-      _statusText = 'Apagando camara';
+      _statusText = 'Apagando cámara';
     });
 
     _frameTimer?.cancel();
@@ -372,7 +372,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       _lastEditableWordIndex = null;
       _noHandCounter = 0;
       _cooldownRemaining = 0;
-      _statusText = 'La camara esta apagada.';
+      _statusText = 'La cámara esta apagada.';
       _errorText = null;
     });
   }
@@ -464,7 +464,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     if (_captureState == _CaptureState.idle && extraction.handsVisible) {
       setState(() {
         _captureState = _CaptureState.signing;
-        _statusText = 'Grabando Se\u00f1a';
+        _statusText = 'Grabando Seña';
         _signFrames
           ..clear()
           ..add(extraction.features);
@@ -488,7 +488,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         setState(() {
           _captureState = _CaptureState.predicting;
           _isPredicting = true;
-          _statusText = 'Enviando Se\u00f1a al backend';
+          _statusText = 'Enviando Seña al backend';
         });
 
         unawaited(_predictCurrentSign(framesForPrediction));
@@ -501,7 +501,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       if (mounted) {
         setState(() {
           _statusText =
-              'Se\u00f1a omitida: demasiado corta (${frames.length} frames).';
+              'Seña omitida: demasiado corta (${frames.length} frames).';
         });
       }
       _resetAfterPrediction();
@@ -526,8 +526,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         _lastLatencyMs = stopwatch.elapsedMilliseconds;
         _sentenceWords.add(prediction.label);
         _lastEditableWordIndex = _sentenceWords.length - 1;
-        _statusText =
-            'Se\u00f1a reconocida. Continua para construir la oracion.';
+        _statusText = 'Seña reconocida. Continua para construir la oración.';
         _errorText = null;
       });
     } on ApiException catch (error) {
@@ -536,7 +535,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
             'Prediction request failed [${error.statusCode}]: ${error.message}');
         setState(() {
           _errorText = _friendlyPredictionError(error);
-          _statusText = 'No se pudo completar la prediccion.';
+          _statusText = 'No se pudo completar la predicción.';
         });
       }
     } catch (error) {
@@ -544,7 +543,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         debugPrint('Prediction failed: $error');
         setState(() {
           _errorText = _friendlyPredictionError(error);
-          _statusText = 'No se pudo completar la prediccion.';
+          _statusText = 'No se pudo completar la predicción.';
         });
       }
     } finally {
@@ -704,7 +703,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       _lastTopK = const <TopKPrediction>[];
       _selectedTopChoiceLabel = null;
       _lastEditableWordIndex = null;
-      _statusText = 'Oracion limpiada.';
+      _statusText = 'Oración limpiada.';
     });
   }
 
@@ -755,43 +754,43 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       _sentenceWords[_lastEditableWordIndex!] = label;
       _lastPredictionLabel = label;
       _lastPredictionConfidence = selected.confidence;
-      _statusText = 'La opcion elegida se actualizo para la ultima se\u00f1a.';
+      _statusText = 'La opción elegida se actualizo para la ultima seña.';
     });
   }
 
   String _friendlySentenceProcessingError(Object error) {
     if (error is TimeoutException) {
-      return 'La correccion demoro demasiado. Se uso la oracion original.';
+      return 'La corrección demoro demasiado. Se uso la oración original.';
     }
 
     if (error is ApiException) {
       if (error.statusCode == 401 || error.statusCode == 403) {
-        return 'No se pudo autenticar el servicio de oraciones. Se uso la oracion original.';
+        return 'No se pudo autenticar el servicio de oraciones. Se uso la oración original.';
       }
       if (error.statusCode == 429) {
-        return 'El servicio de oraciones esta ocupado. Se uso la oracion original.';
+        return 'El servicio de oraciones esta ocupado. Se uso la oración original.';
       }
       if (error.statusCode >= 500) {
-        return 'El servicio de oraciones no esta disponible. Se uso la oracion original.';
+        return 'El servicio de oraciones no esta disponible. Se uso la oración original.';
       }
     }
 
-    return 'No se pudo mejorar la oracion. Se uso la oracion original.';
+    return 'No se pudo mejorar la oración. Se uso la oración original.';
   }
 
   String _friendlyCameraError(Object error) {
     final errorText = error.toString().toLowerCase();
     if (errorText.contains('frozen')) {
-      return 'La camara se quedo congelada. Apagala y enciendela de nuevo.';
+      return 'La cámara se quedó congelada. Apágala y enciéndela de nuevo.';
     }
     if (error is TimeoutException) {
-      return 'La camara tardo demasiado en iniciar. Intentalo de nuevo.';
+      return 'La cámara tardo demasiado en iniciar. Intentalo de nuevo.';
     }
-    return 'No se pudo activar la camara. Revisa los permisos del navegador e intentalo de nuevo.';
+    return 'No se pudo activar la cámara. Revisa los permisos del navegador e intentalo de nuevo.';
   }
 
   String _friendlyFrameError(Object error) {
-    return 'No se pudo analizar esta se\u00f1a. Reinicia la camara e intentalo de nuevo.';
+    return 'No se pudo analizar esta seña. Reinicia la cámara e intentalo de nuevo.';
   }
 
   String _friendlyPredictionError(Object error) {
@@ -804,7 +803,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         return 'No fue posible conectar. El sistema no esta disponible ahora.';
       }
       if (error.statusCode == 422) {
-        return 'La se\u00f1a fue muy corta o incompleta. Hazla de nuevo.';
+        return 'La seña fue muy corta o incompleta. Hazla de nuevo.';
       }
       if (error.statusCode == 429) {
         return 'El sistema esta ocupado. Espera un momento e intentalo de nuevo.';
@@ -817,7 +816,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       }
     }
 
-    return 'La se\u00f1a no se pudo traducir en este momento.';
+    return 'La seña no se pudo traducir en este momento.';
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -868,7 +867,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Prueba de camara',
+                  'Prueba de cámara',
                   style: GoogleFonts.lalezar(
                     fontSize: 44 * scale,
                     fontWeight: FontWeight.w700,
@@ -878,7 +877,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                 ),
                 SizedBox(height: 12 * scale),
                 Text(
-                  'Captura en vivo, extraccion de keypoints y prediccion por Se\u00f1a.',
+                  'Captura en vivo, extraccion de keypoints y prediccion por Seña.',
                   style: GoogleFonts.inter(
                     color: AppColors.muted,
                     fontWeight: FontWeight.w400,
@@ -963,8 +962,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                                     )
                                   : Text(
                                       _cameraOn
-                                          ? 'Apagar camara'
-                                          : 'Encender camara',
+                                          ? 'Apagar cámara'
+                                          : 'Encender cámara',
                                       style: GoogleFonts.inter(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 14 * scale,
@@ -992,7 +991,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                               child: Text(
                                 _isConfirmingSentence
                                     ? 'Confirmando'
-                                    : 'Confirmar oracion (Enter)',
+                                    : 'Confirmar oración (Enter)',
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13 * scale,
@@ -1041,7 +1040,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                           _StateLine(
                             isActive: signDetectedActive,
                             color: const Color(0xFF10B981),
-                            text: 'Se\u00f1a detectada',
+                            text: 'Seña detectada',
                             scale: scale,
                           ),
                           SizedBox(height: 8 * scale),
@@ -1054,7 +1053,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                           SizedBox(height: 10 * scale),
                           if (_lastPredictionLabel != null)
                             Text(
-                              'Ultima se\u00f1a: $_lastPredictionLabel',
+                              'Ultima seña: $_lastPredictionLabel',
                               style: GoogleFonts.inter(
                                 color: AppColors.text,
                                 fontSize: 12 * scale,
@@ -1089,7 +1088,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'No era esa? Elige la opcion correcta',
+                                        'No era esa? Elige la opción correcta',
                                         style: GoogleFonts.inter(
                                           color: AppColors.text,
                                           fontSize: 12 * scale,
@@ -1195,7 +1194,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Buffer de oracion',
+                        'Buffer de oración',
                         style: GoogleFonts.inter(
                           color: AppColors.text,
                           fontWeight: FontWeight.w700,
@@ -1205,7 +1204,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                       SizedBox(height: 8 * scale),
                       Text(
                         _sentenceWords.isEmpty
-                            ? 'Esperando se\u00f1as'
+                            ? 'Esperando señas'
                             : _sentenceWords.join(' '),
                         style: GoogleFonts.inter(
                           color: _sentenceWords.isEmpty
@@ -1251,7 +1250,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                       ),
                       SizedBox(height: 12 * scale),
                       Text(
-                        'Camara en espera',
+                        'Cámara en espera',
                         style: GoogleFonts.inter(
                           color: AppColors.text.withOpacity(0.4),
                           fontSize: 16 * scale,
