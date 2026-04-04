@@ -46,7 +46,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   static const _cooldownFrames = 15;
   static const _maxSignFrames = 150;
   static const _frameInterval = Duration(milliseconds: 33);
-  static const _sentenceProcessingTimeout = Duration(seconds: 8);
+  static const _sentenceProcessingTimeout = Duration(seconds: 12);
   static const _bufferPreviewBeforeSpeak = Duration(milliseconds: 550);
   static const _minWordsForGrammarPass = 2;
   static const _videoStartTimeout = Duration(seconds: 2);
