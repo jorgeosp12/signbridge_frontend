@@ -46,7 +46,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
   static const _cooldownFrames = 15;
   static const _maxSignFrames = 150;
   static const _frameInterval = Duration(milliseconds: 33);
-  static const _sentenceProcessingTimeout = Duration(seconds: 4);
+  static const _sentenceProcessingTimeout = Duration(seconds: 8);
+  static const _bufferPreviewBeforeSpeak = Duration(milliseconds: 550);
   static const _minWordsForGrammarPass = 2;
   static const _videoStartTimeout = Duration(seconds: 2);
   static const _videoAdvanceCheck = Duration(milliseconds: 450);
@@ -576,10 +577,12 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
     setState(() {
       _isConfirmingSentence = true;
       _statusText = 'Procesando oracion';
+      _errorText = null;
     });
 
     var sentenceForOutput = rawSentence;
     var usedGrammarEndpoint = false;
+    String? sentenceProcessingNotice;
     final shouldProcessSentence =
         _sentenceWords.length >= _minWordsForGrammarPass;
 
@@ -597,11 +600,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
           }
         } catch (error) {
           debugPrint('Sentence processing failed: $error');
-          if (mounted) {
-            setState(() {
-              _errorText = _friendlySentenceProcessingError(error);
-            });
-          }
+          sentenceProcessingNotice = _friendlySentenceProcessingError(error);
         }
       }
 
@@ -622,12 +621,19 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
         _lastTopK = const <TopKPrediction>[];
         _selectedTopChoiceLabel = null;
         _lastEditableWordIndex = null;
-        _statusText = usedGrammarEndpoint
-            ? 'Oracion corregida. Reproduciendo voz.'
-            : 'Oracion confirmada. Reproduciendo voz.';
+        if (sentenceProcessingNotice != null) {
+          _statusText = 'No se pudo corregir. Reproduciendo oracion original.';
+        } else {
+          _statusText = usedGrammarEndpoint
+              ? 'Oracion corregida. Reproduciendo voz.'
+              : 'Oracion confirmada. Reproduciendo voz.';
+        }
       });
 
-      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(_bufferPreviewBeforeSpeak);
+      if (!mounted) {
+        return;
+      }
 
       if (RuntimeConfig.enableBrowserTts) {
         final didSpeak = TtsService.speak(
@@ -647,9 +653,18 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
       }
 
       setState(() {
-        _statusText = usedGrammarEndpoint
-            ? 'Oracion corregida y confirmada.'
-            : 'Oracion confirmada.';
+        _sentenceWords.clear();
+        _lastTopK = const <TopKPrediction>[];
+        _selectedTopChoiceLabel = null;
+        _lastEditableWordIndex = null;
+        if (sentenceProcessingNotice != null) {
+          _statusText =
+              'Oracion original enviada. Puedes iniciar la siguiente.';
+        } else {
+          _statusText = usedGrammarEndpoint
+              ? 'Oracion corregida enviada. Puedes iniciar la siguiente.'
+              : 'Oracion enviada. Puedes iniciar la siguiente.';
+        }
       });
     } catch (error) {
       if (mounted) {
