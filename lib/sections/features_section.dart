@@ -11,7 +11,7 @@ class FeaturesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final scale = responsiveScale(context, min: 0.9, max: 1.3);
+    final scale = responsiveScale(context, min: 0.8, max: 1.3);
     final contentMax = responsiveMaxWidth(context, base: 1100);
 
     return SectionContainer(
@@ -84,6 +84,14 @@ class FeaturesSection extends StatelessWidget {
                           'Convierte lengua de señas en voz usando inteligencia artificial.',
                       scale: scale,
                     ),
+                    _FeatureCard(
+                      icon: Icons.subtitles_outlined,
+                      title: 'Limitaciones',
+                      description:
+                          'Actualmente no soporta traducción ni reconocimiento de oraciones completas. El sistema traduce palabra por palabra',
+                      scale: scale,
+                    ),
+
                     _FeatureCard(
                       icon: Icons.video_call_outlined,
                       title: 'Integración con videollamadas',
@@ -226,7 +234,7 @@ class _FeatureCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(12 * scale),
+            padding: EdgeInsets.all(16 * scale),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.08),
               shape: BoxShape.circle,
@@ -234,7 +242,7 @@ class _FeatureCard extends StatelessWidget {
             child: Icon(
               icon,
               color: AppColors.success,
-              size: 30 * scale,
+              size: 16 * scale,
             ),
           ),
           SizedBox(height: 20 * scale),
@@ -242,7 +250,7 @@ class _FeatureCard extends StatelessWidget {
             title,
             style: GoogleFonts.inter(
               fontWeight: FontWeight.w500,
-              fontSize: 18 * scale,
+              fontSize: 15 * scale,
             ),
           ),
           SizedBox(height: 10 * scale),
@@ -251,7 +259,7 @@ class _FeatureCard extends StatelessWidget {
             style: GoogleFonts.inter(
               color: AppColors.text,
               fontWeight: FontWeight.w400,
-              fontSize: 14 * scale,
+              fontSize: 12 * scale,
               height: 1.5,
             ),
           ),

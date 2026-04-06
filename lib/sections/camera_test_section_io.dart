@@ -38,7 +38,7 @@ class CameraTestSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Prueba de camara',
+                  'DEMO',
                   style: GoogleFonts.lalezar(
                     fontSize: 40 * scale,
                     color: AppColors.text,

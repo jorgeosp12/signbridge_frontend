@@ -990,8 +990,8 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                               ),
                               child: Text(
                                 _isConfirmingSentence
-                                    ? 'Confirmando'
-                                    : 'Confirmar oración (Enter)',
+                                    ? 'Confirmando y tr'
+                                    : 'Confirmar y transmitir oración (Enter)',
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13 * scale,

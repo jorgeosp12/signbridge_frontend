@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 double responsiveScale(
   BuildContext context, {
   double baseWidth = 1366,
-  double min = 0.88,
+  double min = 0.80,
   double max = 1.45,
 }) {
   final width = MediaQuery.of(context).size.width;
