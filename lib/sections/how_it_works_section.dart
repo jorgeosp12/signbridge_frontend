@@ -66,7 +66,7 @@ class HowItWorksSection extends StatelessWidget {
                   index: '2',
                   title: 'Set Windows Output to CABLE Input',
                   body:
-                      'Open Windows Sound settings and select CABLE Input (VB-Audio Virtual Cable) as your default output device. This routes app audio into the virtual cable.',
+                      'Open Windows Sound settings and select CABLE Input (VB-Audio Virtual Cable) as your default output device. This routes app audio into the virtual cable. Look at the image on the left below.',
                   scale: scale,
                 ),
                 SizedBox(height: 14 * scale),
@@ -74,7 +74,7 @@ class HowItWorksSection extends StatelessWidget {
                   index: '3',
                   title: 'Set Meeting Microphone to CABLE Output',
                   body:
-                      'In Zoom, Meet, or Teams, open Audio settings and set the microphone/input device to CABLE Output (VB-Audio Virtual Cable). This lets others hear the generated speech.',
+                      'In Zoom, Meet, or Teams, open Audio settings and set the microphone/input device to CABLE Output (VB-Audio Virtual Cable). This lets others hear the generated speech. Look at the image on the right below.',
                   scale: scale,
                 ),
                 SizedBox(height: 14 * scale),
@@ -97,34 +97,54 @@ class HowItWorksSection extends StatelessWidget {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final isNarrow = constraints.maxWidth < 900;
-                    final placeholderA = _ImagePlaceholder(
-                      title: 'Image Placeholder #1',
-                      caption:
-                          'Show Windows output set to CABLE Input (VB-Audio Virtual Cable).',
-                      scale: scale,
+
+                    final imageA = Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/system_audio.png',
+                          width: 420 * scale, 
+                          fit: BoxFit.contain,
+                        ),
+                        SizedBox(height: 10 * scale),
+                        Text(
+                          'Windows output set to CABLE Input (VB-Audio Virtual Cable)',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     );
-                    final placeholderB = _ImagePlaceholder(
-                      title: 'Image Placeholder #2',
-                      caption:
-                          'Show Zoom/Meet/Teams microphone set to CABLE Output.',
-                      scale: scale,
+
+                    final imageB = Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/meet.png',
+                          width: 415 * scale, 
+                          fit: BoxFit.contain,
+                        ),
+                        SizedBox(height: 8 * scale),
+                        Text(
+                          'Zoom/Meet/Teams microphone set to CABLE Output',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     );
 
                     if (isNarrow) {
                       return Column(
                         children: [
-                          placeholderA,
+                          imageA,
                           SizedBox(height: 16 * scale),
-                          placeholderB,
+                          imageB,
                         ],
                       );
                     }
 
                     return Row(
                       children: [
-                        Expanded(child: placeholderA),
+                        Expanded(child: imageA),
                         SizedBox(width: 16 * scale),
-                        Expanded(child: placeholderB),
+                        Expanded(child: imageB),
                       ],
                     );
                   },

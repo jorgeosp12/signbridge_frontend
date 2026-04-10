@@ -93,7 +93,7 @@ class FeaturesSection extends StatelessWidget {
                           icon: Icons.mic_none_rounded,
                           title: 'Sign-to-Speech',
                           description:
-                              'Converts ASL signs into spoken output with AI-driven inference.',
+                              'Converts ASL signs into spoken output with AI-driven inference. The system translates word by word.',
                           scale: scale,
                         ),
                       ),
@@ -103,7 +103,7 @@ class FeaturesSection extends StatelessWidget {
                           icon: Icons.auto_fix_high_outlined,
                           title: 'Sentence Cleanup',
                           description:
-                              'Uses a language endpoint to reorder detected words into natural text.',
+                              'It uses Gemini to reorder the detected words and convert them into natural text.',
                           scale: scale,
                         ),
                       ),
