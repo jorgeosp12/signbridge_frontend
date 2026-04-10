@@ -84,7 +84,7 @@ class NavBar extends StatelessWidget {
       children: [
         navItem('Home'),
         navItem('Features'),
-        navItem('Tutorial'),
+        navItem('How it works'),
         navItem('Demo'),
       ],
     );

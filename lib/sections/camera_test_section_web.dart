@@ -886,7 +886,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Camera test',
+                  'DEMO',
                   style: GoogleFonts.lalezar(
                     fontSize: 44 * scale,
                     fontWeight: FontWeight.w700,
