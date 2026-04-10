@@ -63,7 +63,7 @@ class HeroSection extends StatelessWidget {
                     border: Border.all(color: Colors.white.withOpacity(0.08)),
                   ),
                   child: Text(
-                    'CAPSTONE PROJECT 2026',
+                    'UNDERGRADUATE PROJECT 2026',
                     style: GoogleFonts.inter(
                       fontSize: 13 * scale,
                       fontWeight: FontWeight.w600,

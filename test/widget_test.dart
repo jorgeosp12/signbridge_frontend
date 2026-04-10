@@ -10,7 +10,7 @@ void main() {
 
     await tester.pumpWidget(const SignBridgeApp());
 
-    expect(find.text('THESIS PROJECT 2026'), findsOneWidget);
+    expect(find.text('UNDERGRADUATE PROJECT 2026'), findsOneWidget);
     expect(find.text('Start AI engine'), findsOneWidget);
   });
 }
