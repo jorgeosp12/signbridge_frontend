@@ -1067,7 +1067,7 @@ class _CameraTestSectionWebState extends State<CameraTestSection> {
                             _StateLine(
                               isActive: backendActive,
                               color: const Color(0xFFF59E0B),
-                              text: 'Backend request',
+                              text: 'Processing',
                               scale: scale,
                             ),
                             SizedBox(height: 10 * scale),
