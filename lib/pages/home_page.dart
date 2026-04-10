@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
   final _tutorialKey = GlobalKey();
   final _demoKey = GlobalKey();
 
-  String _selected = 'Inicio';
+  String _selected = 'Home';
 
   bool _engineOn = false;
   bool _engineStarting = false;
@@ -76,8 +76,8 @@ class _HomePageState extends State<HomePage> {
     const activationOffset = 140.0;
     final currentOffset = _scroll.offset + activationOffset;
     final sections = <({String label, GlobalKey key})>[
-      (label: 'Inicio', key: _homeKey),
-      (label: 'Funciones', key: _featuresKey),
+      (label: 'Home', key: _homeKey),
+      (label: 'Features', key: _featuresKey),
       (label: 'Tutorial', key: _tutorialKey),
       (label: 'Demo', key: _demoKey),
     ];
@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _toggleEngine() async {
     if (_engineOn) {
       setState(() => _engineOn = false);
-      _showEngineMessage('Motor de IA apagado.', isError: false);
+      _showEngineMessage('AI engine turned off.', isError: false);
       return;
     }
 
@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
         throw const ApiException(
           statusCode: 403,
           message:
-              'Falta SIGNBRIDGE_API_KEY. Configuralo con --dart-define en el frontend.',
+              'Missing SIGNBRIDGE_API_KEY. Configure it with --dart-define in the frontend.',
         );
       }
 
@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       setState(() => _engineOn = true);
-      _showEngineMessage('Motor de IA encendido y listo.', isError: false);
+      _showEngineMessage('AI engine is on and ready.', isError: false);
     } catch (error) {
       if (!mounted) return;
       setState(() => _engineOn = false);
@@ -247,21 +247,21 @@ class _HomePageState extends State<HomePage> {
 
   String _friendlyEngineError(Object error) {
     if (error is TimeoutException) {
-      return 'El servidor de IA sigue iniciando. Intentalo de nuevo en unos segundos.';
+      return 'The AI server is still starting. Please try again in a few seconds.';
     }
     if (error is ApiException) {
       if (error.statusCode == 403) {
-        return 'La conexion al sistema necesita configuracion.';
+        return 'The connection needs additional configuration.';
       }
       if (error.statusCode == 503) {
-        return 'El sistema esta iniciando. Intenta nuevamente en unos segundos.';
+        return 'The system is starting. Try again in a few seconds.';
       }
       if (error.statusCode == 404) {
-        return 'No se encontro el servicio de IA. Verifica la URL del backend.';
+        return 'AI service was not found. Verify the backend URL.';
       }
-      return 'No fue posible iniciar el motor de IA en este momento.';
+      return 'The AI engine could not be started right now.';
     }
-    return 'No fue posible conectarse al sistema en este momento.';
+    return 'Could not connect to the system right now.';
   }
 
   @override
@@ -274,11 +274,11 @@ class _HomePageState extends State<HomePage> {
             systemOnline: _systemOnline,
             onSelect: (label) {
               switch (label) {
-                case 'Inicio':
-                  _scrollTo(_homeKey, 'Inicio');
+                case 'Home':
+                  _scrollTo(_homeKey, 'Home');
                   break;
-                case 'Funciones':
-                  _scrollTo(_featuresKey, 'Funciones');
+                case 'Features':
+                  _scrollTo(_featuresKey, 'Features');
                   break;
                 case 'Tutorial':
                   _scrollTo(_tutorialKey, 'Tutorial');

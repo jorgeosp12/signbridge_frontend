@@ -11,8 +11,8 @@ class FeaturesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final scale = responsiveScale(context, min: 0.8, max: 1.3);
-    final contentMax = responsiveMaxWidth(context, base: 1100);
+    final scale = responsiveScale(context, min: 0.82, max: 1.3);
+    final contentMax = responsiveMaxWidth(context, base: 1120);
 
     return SectionContainer(
       backgroundColor: AppColors.bgAlt.withOpacity(0.5),
@@ -27,24 +27,25 @@ class FeaturesSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Funciones principales',
+              'Core Features',
+              textAlign: TextAlign.center,
               style: GoogleFonts.lalezar(
-                fontSize: 45 * scale,
+                fontSize: (44 * scale).clamp(34, 56).toDouble(),
                 fontWeight: FontWeight.w600,
-                letterSpacing: 2.2 * scale,
+                letterSpacing: 2.0 * scale,
               ),
             ),
-            SizedBox(height: 3 * scale),
+            SizedBox(height: 4 * scale),
             Text(
-              'Diseñado para mejorar la comunicación inclusiva en Windows',
+              'Built to improve inclusive communication on Windows.',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: AppColors.text,
                 fontWeight: FontWeight.w400,
-                fontSize: 16 * scale,
+                fontSize: (16 * scale).clamp(14, 20).toDouble(),
               ),
             ),
-            SizedBox(height: 50 * scale),
+            SizedBox(height: 44 * scale),
             Wrap(
               spacing: 12 * scale,
               runSpacing: 12 * scale,
@@ -52,88 +53,81 @@ class FeaturesSection extends StatelessWidget {
               children: [
                 _InfoChip(
                   icon: Icons.bolt_rounded,
-                  title: 'Tiempo real',
-                  subtitle: 'Respuesta',
+                  title: 'Real-time',
+                  subtitle: 'Responses',
                   scale: scale,
                 ),
                 _InfoChip(
                   icon: Icons.shield_outlined,
-                  title: '100%',
-                  subtitle: 'Privacidad',
+                  title: 'Privacy-first',
+                  subtitle: 'No conversations stored',
                   scale: scale,
                 ),
                 _InfoChip(
                   icon: Icons.desktop_windows_outlined,
                   title: 'Windows',
-                  subtitle: 'Plataforma',
+                  subtitle: 'Ready',
                   scale: scale,
                 ),
               ],
             ),
-            SizedBox(height: 60 * scale),
+            SizedBox(height: 50 * scale),
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: contentMax),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 980;
-                  final cards = [
-                    _FeatureCard(
-                      icon: Icons.mic_none_rounded,
-                      title: 'Traducción',
-                      description:
-                          'Convierte lengua de señas en voz usando inteligencia artificial.',
-                      scale: scale,
-                    ),
-                    _FeatureCard(
-                      icon: Icons.subtitles_outlined,
-                      title: 'Limitaciones',
-                      description:
-                          'Actualmente no soporta traducción ni reconocimiento de oraciones completas. El sistema traduce palabra por palabra',
-                      scale: scale,
-                    ),
+                  final cardWidth = constraints.maxWidth >= 1200
+                      ? 265.0 * scale
+                      : constraints.maxWidth >= 900
+                          ? 300.0 * scale
+                          : constraints.maxWidth;
 
-                    _FeatureCard(
-                      icon: Icons.video_call_outlined,
-                      title: 'Integración con videollamadas',
-                      description:
-                          'Compatible con Zoom, Meet y Teams mediante cable virtual VB-Cable.',
-                      scale: scale,
-                    ),
-                    _FeatureCard(
-                      icon: Icons.accessibility_new_rounded,
-                      title: 'Accesible e intuitivo',
-                      description:
-                          'Diseño inclusivo y fácil de usar, sin pasos complejos.',
-                      scale: scale,
-                    ),
-                  ];
-
-                  if (isNarrow) {
-                    return Column(
-                      children: cards
-                          .map(
-                            (card) => Padding(
-                              padding: EdgeInsets.only(bottom: 16 * scale),
-                              child: card,
-                            ),
-                          )
-                          .toList(),
-                    );
-                  }
-
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: cards
-                        .map(
-                          (card) => Expanded(
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.symmetric(horizontal: 10 * scale),
-                              child: card,
-                            ),
-                          ),
-                        )
-                        .toList(),
+                  return Wrap(
+                    spacing: 16 * scale,
+                    runSpacing: 16 * scale,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: cardWidth,
+                        child: _FeatureCard(
+                          icon: Icons.mic_none_rounded,
+                          title: 'Sign-to-Speech',
+                          description:
+                              'Converts ASL signs into spoken output with AI-driven inference.',
+                          scale: scale,
+                        ),
+                      ),
+                      SizedBox(
+                        width: cardWidth,
+                        child: _FeatureCard(
+                          icon: Icons.auto_fix_high_outlined,
+                          title: 'Sentence Cleanup',
+                          description:
+                              'Uses a language endpoint to reorder detected words into natural text.',
+                          scale: scale,
+                        ),
+                      ),
+                      SizedBox(
+                        width: cardWidth,
+                        child: _FeatureCard(
+                          icon: Icons.video_call_outlined,
+                          title: 'Meeting Integration',
+                          description:
+                              'Works with Zoom, Google Meet, and Teams through virtual cable routing.',
+                          scale: scale,
+                        ),
+                      ),
+                      SizedBox(
+                        width: cardWidth,
+                        child: _FeatureCard(
+                          icon: Icons.accessibility_new_rounded,
+                          title: 'Accessible UX',
+                          description:
+                              'Simple interaction flow and clear controls for practical, daily use.',
+                          scale: scale,
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -163,7 +157,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       constraints: BoxConstraints(
         minWidth: 160 * scale,
-        maxWidth: 210 * scale,
+        maxWidth: 235 * scale,
       ),
       padding: EdgeInsets.symmetric(
         horizontal: 16 * scale,
@@ -186,7 +180,7 @@ class _InfoChip extends StatelessWidget {
             style: GoogleFonts.inter(
               fontWeight: FontWeight.w700,
               fontSize: 14 * scale,
-              letterSpacing: 0.5 * scale,
+              letterSpacing: 0.3 * scale,
             ),
           ),
           if (subtitle.isNotEmpty) ...[
@@ -234,7 +228,7 @@ class _FeatureCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(16 * scale),
+            padding: EdgeInsets.all(14 * scale),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.08),
               shape: BoxShape.circle,
@@ -242,15 +236,15 @@ class _FeatureCard extends StatelessWidget {
             child: Icon(
               icon,
               color: AppColors.success,
-              size: 16 * scale,
+              size: 18 * scale,
             ),
           ),
-          SizedBox(height: 20 * scale),
+          SizedBox(height: 18 * scale),
           Text(
             title,
             style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500,
-              fontSize: 15 * scale,
+              fontWeight: FontWeight.w600,
+              fontSize: 16 * scale,
             ),
           ),
           SizedBox(height: 10 * scale),
@@ -259,7 +253,7 @@ class _FeatureCard extends StatelessWidget {
             style: GoogleFonts.inter(
               color: AppColors.text,
               fontWeight: FontWeight.w400,
-              fontSize: 12 * scale,
+              fontSize: 13 * scale,
               height: 1.5,
             ),
           ),

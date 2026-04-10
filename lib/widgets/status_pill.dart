@@ -10,8 +10,8 @@ class StatusPill extends StatelessWidget {
   const StatusPill({
     super.key,
     required this.isOnline,
-    this.onlineText = 'Sistema activo',
-    this.offlineText = 'Sistema inactivo',
+    this.onlineText = 'System online',
+    this.offlineText = 'System offline',
     this.scale = 1.0,
   });
 

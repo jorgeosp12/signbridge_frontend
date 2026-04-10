@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
-  String _currentSection = 'Inicio';
+  String _currentSection = 'Home';
   bool _engineOn = false;
 
   final GlobalKey _homeKey = GlobalKey();
@@ -42,8 +42,8 @@ class _HomePageState extends State<HomePage> {
     String? activeSection;
 
     final Map<String, GlobalKey> sections = {
-      'Inicio': _homeKey,
-      'Funciones': _featuresKey,
+      'Home': _homeKey,
+      'Features': _featuresKey,
       'Tutorial': _tutorialKey,
       'Demo': _demoKey,
     };
@@ -71,10 +71,10 @@ class _HomePageState extends State<HomePage> {
     GlobalKey? targetKey;
 
     switch (sectionName) {
-      case 'Inicio':
+      case 'Home':
         targetKey = _homeKey;
         break;
-      case 'Funciones':
+      case 'Features':
         targetKey = _featuresKey;
         break;
       case 'Tutorial':

@@ -19,23 +19,23 @@ class NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scale = responsiveScale(context, min: 0.9, max: 1.3);
+    final scale = responsiveScale(context, min: 0.85, max: 1.3);
     final maxWidth = responsiveMaxWidth(context, base: 1100);
-    final isNarrow = MediaQuery.of(context).size.width < 860;
+    final isNarrow = MediaQuery.of(context).size.width < 920;
 
     Widget navItem(String label) {
       final isActive = selected == label;
 
       return AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: EdgeInsets.symmetric(horizontal: 4 * scale),
+        margin: EdgeInsets.symmetric(horizontal: 3 * scale),
         child: TextButton(
           onPressed: () => onSelect(label),
           style: TextButton.styleFrom(
             foregroundColor: isActive ? AppColors.text : AppColors.muted,
             padding: EdgeInsets.symmetric(
-              horizontal: 16 * scale,
-              vertical: 12 * scale,
+              horizontal: 14 * scale,
+              vertical: 10 * scale,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12 * scale),
@@ -44,13 +44,50 @@ class NavBar extends StatelessWidget {
           child: Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 14 * scale,
+              fontSize: (13 * scale).clamp(12, 16).toDouble(),
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
         ),
       );
     }
+
+    final brand = RichText(
+      text: TextSpan(
+        style: GoogleFonts.montserrat(
+          fontSize: 18 * scale,
+          fontWeight: FontWeight.w900,
+        ),
+        children: [
+          TextSpan(
+            text: 'Sign',
+            style: GoogleFonts.lalezar(
+              color: Colors.white,
+              letterSpacing: 1.5 * scale,
+              fontSize: (25 * scale).clamp(20, 32).toDouble(),
+            ),
+          ),
+          TextSpan(
+            text: 'Bridge',
+            style: GoogleFonts.lalezar(
+              color: AppColors.primary,
+              letterSpacing: 1.5 * scale,
+              fontSize: (25 * scale).clamp(20, 32).toDouble(),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final navItems = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        navItem('Home'),
+        navItem('Features'),
+        navItem('Tutorial'),
+        navItem('Demo'),
+      ],
+    );
 
     return Container(
       width: double.infinity,
@@ -67,48 +104,33 @@ class NavBar extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
-          child: Row(
-            children: [
-              RichText(
-                text: TextSpan(
-                  style: GoogleFonts.montserrat(
-                    fontSize: 18 * scale,
-                    fontWeight: FontWeight.w900,
-                  ),
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextSpan(
-                      text: 'Sign',
-                      style: GoogleFonts.lalezar(
-                        color: Colors.white,
-                        letterSpacing: 1.5 * scale,
-                        fontSize: 25 * scale,
-                      ),
+                    Row(
+                      children: [
+                        brand,
+                        const Spacer(),
+                        StatusPill(isOnline: systemOnline, scale: scale),
+                      ],
                     ),
-                    TextSpan(
-                      text: 'Bridge',
-                      style: GoogleFonts.lalezar(
-                        color: AppColors.primary,
-                        letterSpacing: 1.5 * scale,
-                        fontSize: 25 * scale,
-                      ),
+                    SizedBox(height: 10 * scale),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: navItems,
                     ),
                   ],
-                ),
-              ),
-              const Spacer(),
-              if (!isNarrow)
-                Row(
+                )
+              : Row(
                   children: [
-                    navItem('Inicio'),
-                    navItem('Funciones'),
-                    navItem('Tutorial'),
-                    navItem('Demo'),
+                    brand,
+                    const Spacer(),
+                    navItems,
+                    const Spacer(),
+                    StatusPill(isOnline: systemOnline, scale: scale),
                   ],
                 ),
-              const Spacer(),
-              StatusPill(isOnline: systemOnline, scale: scale),
-            ],
-          ),
         ),
       ),
     );

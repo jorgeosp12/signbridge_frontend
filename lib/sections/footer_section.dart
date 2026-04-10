@@ -29,45 +29,39 @@ class FooterSection extends StatelessWidget {
               children: [
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final isNarrow = constraints.maxWidth < 840;
+                    final isNarrow = constraints.maxWidth < 860;
 
                     final brandColumn = Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Sign',
-                                    style: GoogleFonts.lalezar(
-                                      fontSize: 24 * scale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                      letterSpacing: 1.5 * scale,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'Bridge',
-                                    style: GoogleFonts.lalezar(
-                                      fontSize: 24 * scale,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primary,
-                                      letterSpacing: 1.5 * scale,
-                                    ),
-                                  ),
-                                ],
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Sign',
+                                style: GoogleFonts.lalezar(
+                                  fontSize: 24 * scale,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  letterSpacing: 1.5 * scale,
+                                ),
                               ),
-                            ),
-                          ],
+                              TextSpan(
+                                text: 'Bridge',
+                                style: GoogleFonts.lalezar(
+                                  fontSize: 24 * scale,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                  letterSpacing: 1.5 * scale,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(height: 16 * scale),
                         Text(
-                          'Tecnología de traducción de señas a voz '
-                          'diseñada para entornos digitales inclusivos.\n'
-                          'Dirigida a personas con dificultades del habla.',
+                          'Sign-to-speech technology designed for inclusive digital communication.\n'
+                          'Focused on users who need voice support during online meetings.',
                           style: GoogleFonts.inter(
                             color: AppColors.text,
                             fontWeight: FontWeight.w400,
@@ -82,7 +76,7 @@ class FooterSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Autores y contacto',
+                          'Authors & Contact',
                           style: GoogleFonts.inter(
                             fontSize: 16 * scale,
                             fontWeight: FontWeight.w600,
@@ -92,13 +86,13 @@ class FooterSection extends StatelessWidget {
                         ),
                         SizedBox(height: 20 * scale),
                         _ContactInfo(
-                          name: 'Gissel Vanessa Quitián Rojas',
+                          name: 'Gissel Vanessa Quitian Rojas',
                           email: 'gvquitianr@correo.usbcali.edu.co',
                           scale: scale,
                         ),
                         SizedBox(height: 16 * scale),
                         _ContactInfo(
-                          name: 'Jorge Eduardo Ospina Sánchez',
+                          name: 'Jorge Eduardo Ospina Sanchez',
                           email: 'jeospinas@correo.usbcali.edu.co',
                           scale: scale,
                         ),
@@ -110,7 +104,7 @@ class FooterSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           brandColumn,
-                          SizedBox(height: 50 * scale),
+                          SizedBox(height: 44 * scale),
                           contactColumn,
                         ],
                       );
@@ -118,35 +112,24 @@ class FooterSection extends StatelessWidget {
 
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(child: brandColumn),
-                        SizedBox(width: 80 * scale),
+                        SizedBox(width: 70 * scale),
                         contactColumn,
                       ],
                     );
                   },
                 ),
-                SizedBox(height: 48 * scale),
+                SizedBox(height: 44 * scale),
                 Divider(color: Colors.white.withOpacity(0.1)),
-                SizedBox(height: 24 * scale),
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  runSpacing: 16 * scale,
-                  children: [
-                    Text(
-                      '© 2026 SignBridge. Proyecto de grado.',
-                      style: GoogleFonts.inter(
-                        color: AppColors.muted.withOpacity(0.7),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13 * scale,
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                    ),
-                  ],
+                SizedBox(height: 22 * scale),
+                Text(
+                  'Copyright 2026 SignBridge. Capstone project.',
+                  style: GoogleFonts.inter(
+                    color: AppColors.muted.withOpacity(0.7),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13 * scale,
+                  ),
                 ),
               ],
             ),

@@ -19,8 +19,12 @@ class HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final isNarrow = MediaQuery.of(context).size.width < 900;
     final scale = responsiveScale(context, min: 0.9, max: 1.35);
     final maxWidth = responsiveMaxWidth(context, base: 1100);
+    final headlineSize = isNarrow
+        ? (56 * scale).clamp(38, 66).toDouble()
+        : (74 * scale).clamp(52, 96).toDouble();
 
     return Container(
       width: double.infinity,
@@ -59,7 +63,7 @@ class HeroSection extends StatelessWidget {
                     border: Border.all(color: Colors.white.withOpacity(0.08)),
                   ),
                   child: Text(
-                    'PROYECTO DE GRADO 2026',
+                    'CAPSTONE PROJECT 2026',
                     style: GoogleFonts.inter(
                       fontSize: 13 * scale,
                       fontWeight: FontWeight.w600,
@@ -79,10 +83,10 @@ class HeroSection extends StatelessWidget {
                     ],
                   ).createShader(bounds),
                   child: Text(
-                    'Tu voz en reuniones,\nimpulsada por tus manos.',
+                    'Your voice in meetings,\npowered by your hands.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.lalezar(
-                      fontSize: 76 * scale,
+                      fontSize: headlineSize,
                       height: 1.05,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2.5 * scale,
@@ -92,11 +96,11 @@ class HeroSection extends StatelessWidget {
                 ),
                 SizedBox(height: 18 * scale),
                 Text(
-                  'Traducción de Lengua de Se\u00f1as Americana (ASL) a voz.\n'
-                  'Compatible de forma nativa con Zoom, Teams y Google Meet.',
+                  'American Sign Language (ASL) to speech translation.\n'
+                  'Built to work natively with Zoom, Teams, and Google Meet.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                    fontSize: 18 * scale,
+                    fontSize: (18 * scale).clamp(15, 22).toDouble(),
                     height: 1.6,
                     color: AppColors.muted,
                     fontWeight: FontWeight.w500,
@@ -132,12 +136,12 @@ class HeroSection extends StatelessWidget {
                       ),
                       label: Text(
                         engineBusy
-                            ? 'Iniciando...'
+                            ? 'Starting...'
                             : engineOn
-                                ? 'Apagar motor de IA'
-                                : 'Encender motor de IA',
+                                ? 'Turn Off AI Engine'
+                                : 'Start AI Engine',
                         style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w400,
+                          fontWeight: FontWeight.w500,
                           fontSize: 14 * scale,
                         ),
                       ),
