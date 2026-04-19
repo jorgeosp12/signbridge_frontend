@@ -27,7 +27,7 @@ class FeaturesSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Core Features',
+              'Main Features',
               textAlign: TextAlign.center,
               style: GoogleFonts.lalezar(
                 fontSize: (44 * scale).clamp(34, 56).toDouble(),
